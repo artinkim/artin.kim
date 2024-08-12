@@ -1,5 +1,13 @@
 {{ define "main" }}
 <div class="post">
+    <div class="back-button-wrapper primary-anim">
+        <a
+            class="material-icons md-light md-custom back-button"
+            href="javascript:window.history.back()"
+            >chevron_left</a
+        >
+    </div>
+
     <div class="post-head primary-anim">
         <h1>{{ .Title }}</h1>
     </div>
