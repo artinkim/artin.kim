@@ -1,0 +1,27 @@
+baseURL = 'https://example.org/'
+languageCode = 'en-us'
+title = 'Personal Site'
+pygmentsCodeFences = true
+pygmentsUseClasses = true
+
+[menus]
+
+[[menus.main]]
+name = 'projects'
+pageRef = '/projects'
+weight = 1
+
+[[menus.main]]
+name = 'blog'
+pageRef = '/blog'
+weight = 2
+
+[[menus.main]]
+name = 'interests'
+pageRef = '/interests'
+weight = 3
+
+[[menus.main]]
+name = 'info'
+pageRef = '/info'
+weight = 4

@@ -1,0 +1,28 @@
+{{ $currentPage := . }} {{ with site.Menus.main }}
+<nav class="menu">
+    <div class="menu-item">
+        <p class="menu-item-aux">></p>
+        <a href="/">home</a>
+        <p class="menu-item-aux"><</p>
+    </div>
+
+    {{ range . }}
+    <div class="menu-item">
+        <!-- so dumb -->
+        {{ if $currentPage.IsMenuCurrent .Menu . }}
+        <p class="menu-item-aux active">></p>
+        <a class="active" href="{{ .URL }}">{{ .Name }}</a>
+        <p class="menu-item-aux active"><</p>
+        {{ else if $currentPage.HasMenuCurrent .Menu . }}
+        <p class="menu-item-aux active">></p>
+        <a class="active" href="{{ .URL }}">{{ .Name }}</a>
+        <p class="menu-item-aux active"><</p>
+        {{ else }}
+        <p class="menu-item-aux">></p>
+        <a href="{{ .URL }}">{{ .Name }}</a>
+        <p class="menu-item-aux"><</p>
+        {{ end }}
+    </div>
+    {{ end }}
+</nav>
+{{ end }}

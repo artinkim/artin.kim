@@ -1,0 +1,38 @@
+{{ define "main" }}
+<div class="post">
+    <div class="back-button-wrapper primary-anim">
+        <a
+            class="material-icons md-light md-custom back-button"
+            href="javascript:window.history.back()"
+            >chevron_left</a
+        >
+    </div>
+
+    <div class="post-head primary-anim">
+        <h1>{{ .Title }}</h1>
+    </div>
+
+    <div class="post-content">
+        <div class="secondary-anim">
+            {{ range .Pages }}
+            <div class="post-listing">
+                <div class="post-listing-head">
+                    <h2>
+                        <a class="post-name" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+                    </h2>
+
+                    {{ range .Params.tags }}
+                    <a class="tag" href="{{ "tags/" | absURL }}{{ . | urlize }}/">
+                        <p>#</p>
+                        <p>{{ . }}</p>
+                    </a>
+                    {{ end }}
+                </div>
+                <a class="summary tertiary-anim" href="{{ .RelPermalink }}">{{ .Summary }}</a>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</div>
+<footer class="tertiary-anim">{{ partial "footer.html" . }}</footer>
+{{ end }}

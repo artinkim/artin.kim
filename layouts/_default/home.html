@@ -1,0 +1,18 @@
+{{ define "main" }}
+<div class="full-page">
+    <div class="splash">
+        <embed class="logo primary-anim" src="/icons/logo.svg" />
+        {{ with site.Menus.main }}
+        <nav class="menu secondary-anim">
+            {{ range . }}
+            <div class="menu-item">
+                <p class="menu-item-aux">></p>
+                <a href="{{ .URL }}">{{ .Name }}</a>
+                <p class="menu-item-aux"><</p>
+            </div>
+            {{ end }}
+        </nav>
+        {{ end }}
+    </div>
+</div>
+{{ end }}

@@ -1,0 +1,6 @@
+{{ $CSS := resources.Match "css/**.css" | resources.Concat "main.css" }}
+<link rel="stylesheet" href="{{ $CSS.RelPermalink }}" media="all" />
+<link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+/>
