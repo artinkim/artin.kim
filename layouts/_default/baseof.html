@@ -9,8 +9,10 @@
     <body>
         {{ if ne .IsHome true }}
         <header>{{ partial "header.html" . }}</header>
-        {{ end }}
         <main>{{ block "main" . }}{{ end }}</main>
+        {{ else }}
+        <main class="fill">{{ block "main" . }}{{ end }}</main>
+        {{ end }}
         <footer class="tertiary-anim">{{ partial "footer.html" . }}</footer>
     </body>
 </html>
