@@ -3,6 +3,7 @@ languageCode = 'en-us'
 title = 'Personal Site'
 pygmentsCodeFences = true
 pygmentsUseClasses = true
+theme = ["hugo-video"]
 
 [menus]
 
