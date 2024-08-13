@@ -23,12 +23,13 @@ a {
 }
 
 main {
-    margin-top: 3rem;
+    margin: auto;
 }
 
 .post {
     display: grid;
     grid-template-columns: 1fr 50rem 1fr;
+    margin-top: 3rem;
 }
 
 .post-content {
@@ -97,13 +98,15 @@ pre code {
 }
 
 .full-page {
-    height: 90vh;
-    display: flex;
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
     overflow: hidden;
 }
 
 .splash {
-    margin: auto auto;
+    align-self: center;
+    margin: auto;
+    grid-row: 2;
 }
 
 .logo {

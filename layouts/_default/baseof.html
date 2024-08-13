@@ -11,8 +11,6 @@
         <header>{{ partial "header.html" . }}</header>
         {{ end }}
         <main>{{ block "main" . }}{{ end }}</main>
-        {{ if ne .IsHome true }}
         <footer class="tertiary-anim">{{ partial "footer.html" . }}</footer>
-        {{ end }}
     </body>
 </html>
