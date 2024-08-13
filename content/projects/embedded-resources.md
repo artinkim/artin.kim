@@ -2,7 +2,7 @@
 title = "Hub75 Remastered"
 date = 2024-05-05
 draft = false
-tags = ["rust", "embedded", "graphics"]
+interests = ["rust", "embedded", "graphics"]
 summary = "A completely rewritten driver for HUB75 displays."
 github = "https://github.com/AdinAck/hub75-remastered"
 +++

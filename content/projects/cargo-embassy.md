@@ -2,7 +2,7 @@
 title = "Cargo Embassy"
 date = 2023-12-22
 draft = false
-tags = ["rust", "embedded", "tools"]
+interests = ["rust", "embedded", "tools"]
 summary = "Get up and running with Embassy in seconds."
 github = "https://github.com/AdinAck/cargo-embassy"
 +++

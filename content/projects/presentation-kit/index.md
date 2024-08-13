@@ -2,14 +2,14 @@
 title = "PresentationKit"
 date = 2023-07-12
 draft = false
-tags = ["swift", "swiftui", "graphics", "tools"]
+interests = ["swift", "swiftui", "graphics", "tools"]
 summary = "Create stunning presentations with the power of SwiftUI."
 github = "https://github.com/AdinAck/PresentationKit"
 +++
 
 Create stunning presentations with the power of SwiftUI.
 
-{{< video src="images/demo.mp4" controls="false" muted="true" autoplay="true" >}}
+{{< video src="images/demo.mp4" controls="false" muted="true" autoplay="true" loop="true" >}}
 
 ## Installation
 

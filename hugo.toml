@@ -1,6 +1,6 @@
 baseURL = 'https://adinack.dev/'
 languageCode = 'en-us'
-title = 'Personal Site'
+title = 'Adin Ackerman'
 pygmentsCodeFences = true
 pygmentsUseClasses = true
 theme = ["hugo-video"]
@@ -26,3 +26,6 @@ weight = 3
 name = 'me'
 pageRef = '/me'
 weight = 4
+
+[taxonomies]
+tag = 'interests'

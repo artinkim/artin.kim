@@ -2,7 +2,7 @@
 title = "AccessAbility"
 date = 2023-06-16
 draft = false
-tags = ["swiftui", "hackathon", "accessability"]
+interests = ["swiftui", "hackathon", "accessability"]
 summary = "A voice controlled drawing app to demonstrate the ability to use LLMs for accessibility purposes. For CalHacks 2023."
 github = "https://github.com/AdinAck/AccessAbility"
 +++

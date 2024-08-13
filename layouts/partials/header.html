@@ -17,6 +17,10 @@
         <p class="menu-item-aux active">></p>
         <a class="active" href="{{ .URL }}">{{ .Name }}</a>
         <p class="menu-item-aux active"><</p>
+        {{ else if eq $currentPage.Section .Name }}
+        <p class="menu-item-aux active">></p>
+        <a class="active" href="{{ .URL }}">{{ .Name }}</a>
+        <p class="menu-item-aux active"><</p>
         {{ else }}
         <p class="menu-item-aux">></p>
         <a class="inactive" href="{{ .URL }}">{{ .Name }}</a>

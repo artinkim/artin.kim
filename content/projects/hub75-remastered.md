@@ -2,7 +2,7 @@
 title = "Embedded Resources"
 date = 2024-02-18
 draft = false
-tags = ["rust", "embedded"]
+interests = ["rust", "embedded"]
 summary = "Define peripheral usage in a single place for use everywhere."
 github = "https://github.com/AdinAck/embedded-resources"
 +++

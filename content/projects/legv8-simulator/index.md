@@ -2,7 +2,7 @@
 title = "LEGv8 Simulator"
 date = 2022-09-25
 draft = false
-tags = ["swiftui", "tools"]
+interests = ["swiftui", "tools"]
 summary = "A SwiftUI application for writing, executing, and debugging LEGv8 assembly code with a series of visual tools."
 github = "https://github.com/AdinAck/LEGv8-Simulator"
 +++

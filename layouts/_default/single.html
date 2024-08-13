@@ -1,7 +1,7 @@
 {{ define "main" }}
 <div class="post">
     <div class="back-button-wrapper primary-anim">
-        <a class="material-icons md-light md-custom back-button" href="javascript:window.history.back()"
+        <a class="material-icons md-light md-custom back-button" href="../"
             >chevron_left</a
         >
     </div>
@@ -11,20 +11,24 @@
     </div>
 
     <div class="post-content">
-        {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }} {{
-        $dateHuman := .Date | time.Format ":date_long" }}
+        {{ $page := . }}
         <div class="post-neck secondary-anim">
-            <time datetime="{{ $dateMachine }}">{{ $dateHuman }}</time>
-            {{ range .Params.tags }}
-            <a class="tag" href="{{ "tags/" | absURL }}{{ . | urlize }}/">
-                <p>#</p>
-                <p>{{ . }}</p>
-            </a>
+            {{ with .Date }}
+                {{ $dateHuman := $page.Date | time.Format ":date_long" }}
+                <time datetime="{{ . }}">{{ $dateHuman }}</time>
             {{ end }}
+
+            {{ range .Params.interests }}
+                <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
+                    <p>#</p>
+                    <p>{{ . }}</p>
+                </a>
+            {{ end }}
+
             {{ with .Params.github }}
-            <a class="github" href="{{ . }}" target="_tab">
-                <embed class="github" src="/icons/github-mark-white.png">
-            </a>
+                <a class="github" href="{{ . }}" target="_tab">
+                    <embed class="github" src="/icons/github-mark-white.png">
+                </a>
             {{ end }}
         </div>
 

@@ -41,6 +41,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: calc(100vh - 1rem);
+    color: #f0f0f0;
 }
 
 footer {
@@ -56,6 +57,7 @@ video {
     display: block;
     margin: auto;
     max-width: 100%;
+    max-height: var(--content-width);
 }
 
 .post-head {
@@ -190,6 +192,10 @@ header {
 .tag:hover p {
     background-color: white;
     color: #111111;
+}
+
+.post-neck {
+    height: 2rem;
 }
 
 .post-neck time {

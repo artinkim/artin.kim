@@ -1,6 +1,43 @@
 {{ define "main" }}
 <div class="post">
+    {{ if ne .Params.top "true" }}
+    <div class="back-button-wrapper primary-anim">
+        <a class="material-icons md-light md-custom back-button" href="../"
+            >chevron_left</a
+        >
+    </div>
+    {{ end }}
+
+    {{ with .Title }}
+        <div class="post-head primary-anim">
+            <h1>{{ . }}</h1>
+        </div>
+    {{ end }}
+
     <div class="post-content">
+        {{ $page := . }}
+        <div class="post-neck secondary-anim">
+            {{ with .Params.Date }}
+                {{ $dateHuman := $page.Date | time.Format ":date_long" }}
+                <time datetime="{{ . }}">{{ $dateHuman }}</time>
+            {{ end }}
+
+            {{ range .Params.interests }}
+                <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
+                    <p>#</p>
+                    <p>{{ . }}</p>
+                </a>
+            {{ end }}
+
+            {{ with .Params.github }}
+                <a class="github" href="{{ . }}" target="_tab">
+                    <embed class="github" src="/icons/github-mark-white.png">
+                </a>
+            {{ end }}
+        </div>
+
+        <div class="tertiary-anim">{{ .Content }}</div>
+
         <div class="secondary-anim">
             {{ range .Pages }}
             <div class="post-listing">
@@ -9,8 +46,8 @@
                         <a class="post-name" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
                     </h2>
 
-                    {{ range .Params.tags }}
-                    <a class="tag" href="{{ "tags/" | absURL }}{{ . | urlize }}/">
+                    {{ range .Params.interests }}
+                    <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
                         <p>#</p>
                         <p>{{ . }}</p>
                     </a>

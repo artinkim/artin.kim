@@ -2,7 +2,7 @@
 title = "Motor Controller"
 date = 2021-09-07
 draft = false
-tags = ["embedded", "motor-control", "power"]
+interests = ["embedded", "motor-control", "power"]
 summary = "An FOC motor controller featuring the DRV8316 and SAMD21 designed to mount directly to BLDC motors."
 github = "https://github.com/AdinAck/Motor-Controller"
 +++
