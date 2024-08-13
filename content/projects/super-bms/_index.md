@@ -9,9 +9,9 @@ github = "https://github.com/AdinAck/SuperBMS"
 
 A versatile open-source battery management system designed for use in tandem with a central computer/microcontroller.
 
-![](images/3d.png)
+![](https://cdn.adinack.dev/super-bms-3d.png)
 
-![](images/real.jpg)
+![](https://cdn.adinack.dev/super-bms-real.jpg)
 
 ## Features
 - Supports 4-20 Cells

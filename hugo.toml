@@ -3,7 +3,6 @@ languageCode = 'en-us'
 title = 'Adin Ackerman'
 pygmentsCodeFences = true
 pygmentsUseClasses = true
-theme = ["hugo-video"]
 
 [menus]
 
