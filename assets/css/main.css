@@ -22,6 +22,10 @@ a {
     color: #4040ff;
 }
 
+main {
+    margin-top: 3rem;
+}
+
 .post {
     display: grid;
     grid-template-columns: 1fr 50rem 1fr;
@@ -32,9 +36,17 @@ a {
     grid-column: 2;
 }
 
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 1rem);
+}
+
 footer {
     text-align: center;
     color: #505050;
+    width: 100%;
+    margin-top: auto;
 }
 
 .post-content img {
@@ -151,10 +163,6 @@ header {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     width: 100%;
-}
-
-.top-pad {
-    height: 3rem;
 }
 
 .post-neck {

@@ -9,8 +9,8 @@
     <body>
         {{ if ne .IsHome true }}
         <header>{{ partial "header.html" . }}</header>
-        <div class="top-pad"></div>
         {{ end }}
         <main>{{ block "main" . }}{{ end }}</main>
+        <footer class="tertiary-anim">{{ partial "footer.html" . }}</footer>
     </body>
 </html>
