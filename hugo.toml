@@ -22,6 +22,6 @@ pageRef = '/interests'
 weight = 3
 
 [[menus.main]]
-name = 'info'
-pageRef = '/info'
+name = 'me'
+pageRef = '/me'
 weight = 4

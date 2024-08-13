@@ -2,7 +2,7 @@
 <nav class="menu">
     <div class="menu-item">
         <p class="menu-item-aux">></p>
-        <a href="/">home</a>
+        <a class="inactive" href="/">home</a>
         <p class="menu-item-aux"><</p>
     </div>
 
@@ -19,7 +19,7 @@
         <p class="menu-item-aux active"><</p>
         {{ else }}
         <p class="menu-item-aux">></p>
-        <a href="{{ .URL }}">{{ .Name }}</a>
+        <a class="inactive" href="{{ .URL }}">{{ .Name }}</a>
         <p class="menu-item-aux"><</p>
         {{ end }}
     </div>

@@ -21,10 +21,21 @@
                 <p>{{ . }}</p>
             </a>
             {{ end }}
+            {{ with .Params.github }}
+            <a class="github" href="{{ . }}" target="_tab">
+                <embed class="github" src="/icons/github-mark-white.png">
+            </a>
+            {{ end }}
         </div>
 
         <div class="tertiary-anim">{{ .Content }}</div>
     </div>
 </div>
 <footer class="tertiary-anim">{{ partial "footer.html" . }}</footer>
+{{ if .Store.Get "hasMermaid" }}
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true });
+  </script>
+{{ end }}
 {{ end }}
