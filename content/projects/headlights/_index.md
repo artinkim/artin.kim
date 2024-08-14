@@ -1,8 +1,10 @@
 +++
 title = "Headlights"
+date = 2023-11-22
 draft = false
-interests = ["embedded", "power", "swiftui", "ble", "onewheel"]
+interests = ["embedded", "power", "rust", "swiftui", "ble", "onewheel"]
 summary = "A versatile open-source battery management system designed for use in tandem with a central computer/microcontroller."
+featured = "true"
 +++
 
 {{< video src="https://cdn.adinack.dev/headlights-3d.mp4" controls="false" muted="true" autoplay="true" loop="true" >}}

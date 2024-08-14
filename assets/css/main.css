@@ -210,6 +210,11 @@ header {
     flex-direction: row;
 }
 
+.post-listing-head a {
+    margin: auto 1rem auto 0;
+    text-decoration: none;
+}
+
 .post-name {
     color: #e0e0e0;
     text-decoration: none;
@@ -267,4 +272,14 @@ header {
     margin: auto;
     color: red;
     font-family: "SF Mono";
+}
+
+.featured {
+    color: #ffd740;
+    text-shadow: #ffd74080 0 0 1rem;
+    transition: all 200ms var(--entrance-animation);
+}
+
+.post-listing:hover .featured {
+    text-shadow: #ffd74080 0 0 0;
 }

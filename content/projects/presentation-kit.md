@@ -5,6 +5,7 @@ draft = false
 interests = ["swift", "swiftui", "graphics", "tools"]
 summary = "Create stunning presentations with the power of SwiftUI."
 github = "https://github.com/AdinAck/PresentationKit"
+featured = "true"
 +++
 
 Create stunning presentations with the power of SwiftUI.

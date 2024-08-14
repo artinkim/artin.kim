@@ -1,10 +1,6 @@
 {{ define "main" }}
 <div class="post">
-    <div class="back-button-wrapper primary-anim">
-        <a class="material-icons md-light md-custom back-button" href="../"
-            >chevron_left</a
-        >
-    </div>
+    {{ partial "back-button.html" }}
 
     <div class="post-head primary-anim">
         <h1>{{ .Title }}</h1>
@@ -35,10 +31,4 @@
         <div class="tertiary-anim">{{ .Content }}</div>
     </div>
 </div>
-{{ if .Store.Get "hasMermaid" }}
-  <script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({ startOnLoad: true });
-  </script>
-{{ end }}
 {{ end }}

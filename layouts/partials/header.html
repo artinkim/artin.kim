@@ -8,16 +8,7 @@
 
     {{ range . }}
     <div class="menu-item">
-        <!-- so dumb -->
-        {{ if $currentPage.IsMenuCurrent .Menu . }}
-        <p class="menu-item-aux active">></p>
-        <a class="active" href="{{ .URL }}">{{ .Name }}</a>
-        <p class="menu-item-aux active"><</p>
-        {{ else if $currentPage.HasMenuCurrent .Menu . }}
-        <p class="menu-item-aux active">></p>
-        <a class="active" href="{{ .URL }}">{{ .Name }}</a>
-        <p class="menu-item-aux active"><</p>
-        {{ else if eq $currentPage.Section .Name }}
+        {{ if eq $currentPage.Section .Name }}
         <p class="menu-item-aux active">></p>
         <a class="active" href="{{ .URL }}">{{ .Name }}</a>
         <p class="menu-item-aux active"><</p>

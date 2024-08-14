@@ -1,6 +1,5 @@
 +++
 title = "Hardware"
-date = 2023-11-22
 draft = false
 summary = "High density/voltage/frequency digital power."
 github = "https://github.com/AdinAck/Headlights-Hardware/"

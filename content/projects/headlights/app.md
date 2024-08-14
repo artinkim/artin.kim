@@ -1,6 +1,5 @@
 +++
 title = "App"
-date = 2023-11-22
 draft = false
 summary = "Comprehensive controls and monitoring in a SwiftUI app with BLE."
 weight = 3

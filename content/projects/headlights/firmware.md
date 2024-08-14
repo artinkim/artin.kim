@@ -1,6 +1,5 @@
 +++
 title = "Firmware"
-date = 2023-11-22
 draft = false
 summary = "Utilizing Embedded Rust to enable high frequency closed-loop control and communication."
 github = "https://github.com/AdinAck/Headlights-Firmware"

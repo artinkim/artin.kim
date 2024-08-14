@@ -1,11 +1,7 @@
 {{ define "main" }}
 <div class="post">
     {{ if ne .Params.top "true" }}
-    <div class="back-button-wrapper primary-anim">
-        <a class="material-icons md-light md-custom back-button" href="../"
-            >chevron_left</a
-        >
-    </div>
+        {{ partial "back-button.html" }}
     {{ end }}
 
     {{ with .Title }}
@@ -39,13 +35,22 @@
         <div class="tertiary-anim">{{ .Content }}</div>
 
         <div class="secondary-anim">
-            {{ $page = . }}
             {{ range .Pages }}
             <div class="post-listing">
                 <div class="post-listing-head">
                     <h2>
+                        {{ if eq .Params.featured "true" }}
+                        <a class="post-name featured" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+                        {{ else }}
                         <a class="post-name" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+                        {{ end }}
                     </h2>
+
+                    {{ $page := . }}
+                    {{ with .Date }}
+                        {{ $dateHuman := $page.Date | time.Format ":date_long" }}
+                        <a href="{{ $page.RelPermalink }}"><time datetime="{{ . }}">{{ $dateHuman }}</time></a>
+                    {{ end }}
 
                     {{ range .Params.interests }}
                         {{ if ne . $page.Name }} <!-- remove tag if in tag page -->
