@@ -9,6 +9,8 @@ github = "https://github.com/AdinAck/LEGv8-Simulator"
 
 A SwiftUI application for writing, executing, and debugging LEGv8 assembly code with a series of visual tools.
 
+{{< video src="https://cdn.adinack.dev/legv8-simulator-demo.mp4" controls="false" muted="true" autoplay="true" loop="true" >}}
+
 ![](https://cdn.adinack.dev/legv8-simulator-screenshot.png)
 
 ## Download

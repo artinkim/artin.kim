@@ -8,7 +8,7 @@
 
 @font-face {
     font-family: "SF Pro Text";
-    src: url("/font/SF-Pro-Text-Italic.otf") format("opentype");
+    src: url("/font/SF-Pro-Text-RegularItalic.otf") format("opentype");
     font-style: italic;
     font-weight: 400;
     text-rendering: optimizeLegibility;

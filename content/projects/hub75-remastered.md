@@ -1,75 +1,50 @@
 +++
-title = "Embedded Resources"
-date = 2024-02-18
+title = "Hub75 Remastered"
+date = 2024-05-05
 draft = false
-interests = ["rust", "embedded"]
-summary = "Define peripheral usage in a single place for use everywhere."
-github = "https://github.com/AdinAck/embedded-resources"
+interests = ["rust", "embedded", "graphics"]
+summary = "A completely rewritten driver for HUB75 displays."
+github = "https://github.com/AdinAck/hub75-remastered"
 +++
 
-> This crate originated as a [PR](https://github.com/adamgreig/assign-resources/pull/11) to [assign-resources](https://github.com/adamgreig/assign-resources) by Adam Greig.
+{{< gallery >}}
+  {{< img src="https://cdn.adinack.dev/hub75-remastered-IMG_3958.jpeg" >}}
+  {{< img src="https://cdn.adinack.dev/hub75-remastered-IMG_4191.jpeg" >}}
+  {{< img src="https://cdn.adinack.dev/hub75-remastered-06-06-2024-07-57-58.jpeg" >}}
+  {{< img src="https://cdn.adinack.dev/hub75-remastered-14-08-2024-08-21-19.jpeg" >}}
+{{< /gallery >}}
 
-This crate contains a macro to help assign and split up resources from a
-struct, such as the `Peripherals` struct provided by embedded PACs and HALs,
-into many smaller structs which can be passed to other tasks or functions.
+A completely rewritten driver for HUB75 displays.
 
-It's best explained with the example below. Here we define new structs named
-`UsbResources` and `LedResources`, each containing some IO pins and a
-peripheral, and generate new `usb_resources!` and `led_resources!` macros. These macros will construct the respective types from the `Peripherals` instance. We can
-then move these new structs into our tasks.
+## Usage
 
-Resources type aliases may be generated, so function signatures can
-refer to that type as well and any changes are propagated.
+The `embedded-hal` version must be selected with the feature gates `hal-02` or `hal-1`.
+
+---
+
+Create an instance of a display (for example 64x32)
 
 ```rust
-use embassy_stm32::peripherals::*;
-use embedded_resources::resource_group;
+type Display = Hub75_64_32_2<
+    3, // color bits
+    (/* upper color pins */),
+    (/* lower color pins */),
+    (/* row pins */),
+    (/* data pins */),
+>;
 
-#[resource_group]
-struct UsbResources {
-    dp: PA12,
-    dm: PA11,
-    usb: USB,
-}
-
-#[resource_group]
-struct LedResources {
-    r: PA2,
-    g: PA3,
-    b: PA4,
-    #[alias = PWMTimer] // make an alias for this resource
-    tim2: TIM2,
-}
-
-#[embassy_executor::task]
-async fn usb_task(r: UsbResources) {
-    // use r.dp, r.dm, r.usb
-}
-
-async fn setup_leds<'a>(r: LedResources) -> SimplePWM<'a, PWMTimer> {
-    // setup three channel PWM (one for each color)       ^ alias used here
-}
-
-#[embassy_executor::task]
-async fn led_task(rgb_pwm: SimplePWM<'a, PWMTimer>) {
-    // use rgb_pwm                       ^ alias used here
-}
-
-#[embassy_executor::main]
-async fn main(spawner: embassy_executor::Spawner) {
-    let p = embassy_stm32::init(Default::default());
-
-    let rgb_pwm = setup_leds(led_resources!(p));
-
-    spawner.spawn(usb_task(usb_resources!(p))).unwrap();
-    spawner.spawn(led_task(rgb_pwm)).unwrap();
-
-    // can still use p.PA0, p.PA1, etc
-}
+let mut display = Display::new(/* pins */);
 ```
 
-This has a few advantages: you only need to write the specific pin names like
-`PA12` in one place and can refer to them by name thereafter, you only have one
-argument for each task instead of potentially very many, and you don't need
-to write out lots of code to split the resources up. If you're targetting
-multiple different hardware versions, you can use `#[cfg]` to change pin allocations in just one place.
+---
+
+In a continually running background task, draw to the display
+
+```rust
+async fn bg_task(display: Display) {
+    loop {
+        display.output(/* delay provider */);
+        // maybe yield to other same priority tasks
+    }
+}
+```

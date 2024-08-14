@@ -1,8 +1,13 @@
 +++
 title = 'Adin Ackerman'
 draft = false
+top = "true"
 +++
 
-Tempor proident minim aliquip reprehenderit dolor et ad anim Lorem duis sint eiusmod. Labore ut ea duis dolor. Incididunt consectetur proident qui occaecat incididunt do nisi Lorem. Tempor do laborum elit laboris excepteur eiusmod do. Eiusmod nisi excepteur ut amet pariatur adipisicing Lorem.
+Hello, my name is Adin. I'm an electrical and software engineer from San Diego, CA.
 
-Occaecat nulla excepteur dolore excepteur duis eiusmod ullamco officia anim in voluptate ea occaecat officia. Cillum sint esse velit ea officia minim fugiat. Elit ea esse id aliquip pariatur cupidatat id duis minim incididunt ea ea. Anim ut duis sunt nisi. Culpa cillum sit voluptate voluptate eiusmod dolor. Enim nisi Lorem ipsum irure est excepteur voluptate eu in enim nisi. Nostrud ipsum Lorem anim sint labore consequat do.
+My main passion is embedded systems for safety-critical applications (personal electric vehicles). You can see all of my interests [here](/interests).
+
+## Contact
+
+adinackerman@gmail.com

@@ -39,6 +39,7 @@
         <div class="tertiary-anim">{{ .Content }}</div>
 
         <div class="secondary-anim">
+            {{ $page = . }}
             {{ range .Pages }}
             <div class="post-listing">
                 <div class="post-listing-head">
@@ -47,10 +48,12 @@
                     </h2>
 
                     {{ range .Params.interests }}
-                    <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
-                        <p>#</p>
-                        <p>{{ . }}</p>
-                    </a>
+                        {{ if ne . $page.Name }} <!-- remove tag if in tag page -->
+                            <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
+                                <p>#</p>
+                                <p>{{ . }}</p>
+                            </a>
+                        {{ end }}
                     {{ end }}
                 </div>
                 <a class="summary tertiary-anim" href="{{ .RelPermalink }}">{{ .Summary }}</a>

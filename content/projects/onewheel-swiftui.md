@@ -11,7 +11,7 @@ An experiment of mine, making a Swifty app to monitor my VESC'd Onewheel while r
 
 **Warning:** This code is fairly gross and was thrown together in a weekend, I don't recommend anyone learns from or uses this repo.
 
-[Video](https://youtu.be/qgTjDOrlvz8)
+{{< video src="https://cdn.adinack.dev/onewheel-swiftui-demo.mp4" controls="false" muted="true" autoplay="true" loop="true" >}}
 
 {{< gallery >}}
   {{< img src="https://cdn.adinack.dev/onewheel-swiftui-IMG_1895.png" >}}
