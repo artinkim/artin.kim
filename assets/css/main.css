@@ -215,6 +215,11 @@ header {
     text-decoration: none;
 }
 
+.post-listing-head .tag {
+    margin: auto 0.2rem;
+    text-decoration: none;
+}
+
 .post-name {
     color: #e0e0e0;
     text-decoration: none;
