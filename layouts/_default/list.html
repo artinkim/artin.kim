@@ -46,10 +46,10 @@
                         {{ end }}
                     </h2>
 
-                    {{ $page := . }}
+                    {{ $inner_page := . }}
                     {{ with .Date }}
                         {{ $dateHuman := $page.Date | time.Format ":date_long" }}
-                        <a href="{{ $page.RelPermalink }}"><time datetime="{{ . }}">{{ $dateHuman }}</time></a>
+                        <a href="{{ $inner_page.RelPermalink }}"><time datetime="{{ . }}">{{ $dateHuman }}</time></a>
                     {{ end }}
 
                     {{ range .Params.interests }}
