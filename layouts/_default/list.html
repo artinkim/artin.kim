@@ -39,7 +39,7 @@
             <div class="post-listing">
                 <div class="post-listing-head">
                     <h2>
-                        <a {{ if eq .Params.featured "true" }} class="post-name featured" {{ else }} class="post-name" {{ end }} href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+                        <a class="post-name {{ if eq .Params.featured "true" }}featured{{ end }} {{ .Type }}" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
                     </h2>
 
                     {{ $inner_page := . }}

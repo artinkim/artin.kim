@@ -4,6 +4,7 @@ draft = "false"
 date = 2024-06-27T10:43:03-07:00
 interests = ["embedded", "rust"]
 summary = "This post is the first of a series, **Embedded Command** where we will build a robust, performant, and *safe* communication framework for embedded devices piece by piece. The first question to ponder, is how exactly we even want our communication process to look..."
+featured = "true"
 +++
 
 When dealing with little embedded ecosystems, one of the most important -- and often critical -- design considerations is, "how can information be shared?"

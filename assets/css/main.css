@@ -139,10 +139,6 @@ pre code {
     opacity: 1;
 }
 
-.menu-item a.active {
-    color: white;
-}
-
 .menu-item-aux {
     margin: 0;
     display: inline;
@@ -152,7 +148,7 @@ pre code {
     transition: all 200ms var(--entrance-animation);
 }
 
-.menu-item:hover a {
+.menu-item:hover a.inactive {
     color: white;
 }
 
@@ -228,8 +224,20 @@ header {
     margin-right: 1rem;
 }
 
-.post-listing:hover .post-name {
-    color: #4040ff;
+.menu-item a.active {
+    color: white;
+}
+
+.menu-item:hover a.inactive.projects,
+.menu-item a.active.projects,
+.post-listing:hover .post-name.projects {
+    color: #6060ff;
+}
+
+.menu-item:hover a.inactive.blog,
+.menu-item a.active.blog,
+.post-listing:hover .post-name.blog {
+    color: #a0ffa0;
 }
 
 .summary {

@@ -7,7 +7,9 @@
             {{ range . }}
             <div class="menu-item">
                 <p class="menu-item-aux">></p>
-                <a class="inactive" href="{{ .URL }}">{{ .Name }}</a>
+                <a class="inactive {{ .Name }}" href="{{ .URL }}"
+                    >{{ .Name }}</a
+                >
                 <p class="menu-item-aux"><</p>
             </div>
             {{ end }}
