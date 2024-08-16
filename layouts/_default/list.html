@@ -44,7 +44,7 @@
 
                     {{ $inner_page := . }}
                     {{ with .Date }}
-                        {{ $dateHuman := $page.Date | time.Format ":date_long" }}
+                        {{ $dateHuman := . | time.Format ":date_long" }}
                         <a href="{{ $inner_page.RelPermalink }}"><time datetime="{{ . }}">{{ $dateHuman }}</time></a>
                     {{ end }}
 
