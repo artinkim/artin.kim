@@ -19,7 +19,7 @@ time {
 }
 
 a {
-    color: #4040ff;
+    color: #5070ff;
 }
 
 .fill {
@@ -89,6 +89,7 @@ footer {
 
 pre {
     border-radius: 0.5rem;
+    overflow-x: scroll;
 }
 
 pre code {
@@ -273,12 +274,6 @@ header {
     height: calc(var(--content-width) / 2);
 }
 
-.under-construction {
-    margin: auto;
-    color: red;
-    font-family: "SF Mono";
-}
-
 .featured {
     color: #ffd740;
     text-shadow: #ffd74080 0 0 1rem;
@@ -287,4 +282,15 @@ header {
 
 .post-listing:hover .featured {
     text-shadow: #ffd74080 0 0 0;
+}
+
+.under-construction {
+    margin: auto;
+    color: red;
+    font-family: "SF Mono";
+}
+
+blockquote p {
+    font-style: italic;
+    color: #808080;
 }
