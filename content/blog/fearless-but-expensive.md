@@ -526,7 +526,7 @@ What we've accomplished can easily be generalized as a **Signal**. A message pas
 
 Embassy is just as performant as it should be for what it does, and is very convenient to get systems up and running _fast_. RTIC -- being lower level -- can involve more development time to create similar async structures to Embassy, but allows finer control of said systems to an extent that is very difficult to match with Embassy.
 
-Nomad's interests will be better served by RTIC's transparency and flexibility.
+Many of my applications will be better served by RTIC's transparency, performance, and flexibility.
 
 **When emergency scenarios occur, every microsecond counts.**
 
