@@ -5,7 +5,6 @@ draft = false
 interests = ["rust", "embedded", "tools"]
 summary = "Get up and running with Embassy in seconds."
 github = "https://github.com/AdinAck/cargo-embassy"
-featured = "true"
 +++
 
 Get up and running with Embassy in seconds.
