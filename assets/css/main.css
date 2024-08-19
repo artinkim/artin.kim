@@ -302,3 +302,9 @@ blockquote p {
     font-style: italic;
     color: #808080;
 }
+
+.error {
+    margin: 50% auto auto auto;
+    color: red;
+    font-family: "SF Mono";
+}
