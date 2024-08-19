@@ -2,7 +2,6 @@
 title = "Sensorless Observer"
 date = 2024-08-19
 draft = false
-interests = ["embedded", "motor-control"]
 math = true
 +++
 
