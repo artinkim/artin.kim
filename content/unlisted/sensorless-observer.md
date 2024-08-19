@@ -97,7 +97,7 @@ If we have a vector in the $dq$-frame of:
 
 $$
 \begin{bmatrix}
-0 \\
+0\\
 1
 \end{bmatrix}
 $$
@@ -123,7 +123,7 @@ We use the inverse clarke transform to go from $\alpha\beta$-frame to $uvw$-fram
 This process is also reversable, given three phase currents you can use the clarke
 and parke transforms to get all the way to the $dq$-frame.
 
-As you may have noticed, bridgine the gap between the $\alpha\beta$-frame and
+As you may have noticed, bridging the gap between the $\alpha\beta$-frame and
 $dq$-frame requires knowledge of the rotor's position.
 
 This, at last, is why an *observer* is needed.
@@ -174,7 +174,7 @@ it, they just don't have any literature on how they did it.
 
 {{< video src="https://cdn.adinack.dev/sensorless-observer-open-loop.mp4" controls="false" muted="true" autoplay="true" loop="true" >}}
 
-> FOC with space vector modulation open-loop at $\frac{\pi}{80}$ eRads/ms
+> FOC with space vector modulation open-loop at $\frac{\pi}{80}$ eRads/ms. On the scope, $i_u$ is displayed.
 
 {{< gallery >}}
   {{< img src="https://cdn.adinack.dev/sensorless-observer-svm-current.jpeg" >}}
@@ -186,7 +186,7 @@ it, they just don't have any literature on how they did it.
 
 {{< video src="https://cdn.adinack.dev/sensorless-observer-braking-current.mp4" muted="true" autoplay="true" loop="true" >}}
 
-> Resulting $i_u$ from motor motion when all phases set low (shorted together).
+> Resulting $i_u$ from motor motion when all phases are set low (shorted together).
 
 [^1]: **P**ermanent **M**agnet **S**ynchronous **M**otor (PMSM).
 [^2]: The rotor radius is greater than the stator radius.
