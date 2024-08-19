@@ -172,6 +172,22 @@ to create our loss function.
 By the way, I know this is *possible* because companies and people have done
 it, they just don't have any literature on how they did it.
 
+{{< video src="https://cdn.adinack.dev/sensorless-observer-open-loop.mp4" controls="false" muted="true" autoplay="true" loop="true" >}}
+
+> FOC with space vector modulation open-loop at $\frac{\pi}{80}$ eRads/ms
+
+{{< gallery >}}
+  {{< img src="https://cdn.adinack.dev/sensorless-observer-svm-current.jpeg" >}}
+  {{< img src="https://cdn.adinack.dev/sensorless-observer-trap-current.jpeg" >}}
+  {{< img src="https://cdn.adinack.dev/sensorless-observer-square-current.jpeg" >}}
+{{< /gallery >}}
+
+> Space vector, trapezoidal, and square modulation resulting $i_u$ and $i_w$ (notice the phase shift of 120 degrees).
+
+{{< video src="https://cdn.adinack.dev/sensorless-observer-braking-current.mp4" muted="true" autoplay="true" loop="true" >}}
+
+> Resulting $i_u$ from motor motion when all phases set low (shorted together).
+
 [^1]: **P**ermanent **M**agnet **S**ynchronous **M**otor (PMSM).
 [^2]: The rotor radius is greater than the stator radius.
 [^3]: This is referred to as **M**aximum **T**orque **P**er **A**mp (MTPA).
