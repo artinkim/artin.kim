@@ -446,9 +446,11 @@ pub mod data_type {
 Now let's define the trait that represents argument data types:
 
 ```rust
-pub mod arg_type {
-    pub trait State {
-        fn set(w: &mut crate::stm32::cordic::csr::W);
+pub mod data_type {
+    pub mod arg {
+        pub trait State {
+            fn set(w: &mut crate::stm32::cordic::csr::W);
+        }
     }
 }
 ```
@@ -456,7 +458,7 @@ pub mod arg_type {
 ...and implement it for our data types with a small macro:
 
 ```rust
-pub mod arg_type {
+pub mod arg {
     // pub trait State {
     //     fn set(w: &mut crate::stm32::cordic::csr::W);
     // }
@@ -567,8 +569,8 @@ the function type-state trait should accept two generics:
 mod func {
     pub(crate) trait State<Arg, Res>
     where
-        Arg: arg_type::State,
-        Res: res_type::State,
+        Arg: data_type::arg::State,
+        Res: data_type::res::State,
     {
         fn set(w: &mut crate::stm32::cordic::csr::W);
     }
@@ -586,22 +588,21 @@ We can represent these function properties with two new sub-type-states:
 
 ```rust
 pub mod func {
-    pub mod nargs {
-        pub(crate) trait State {
-            fn set(w: &mut crate::stm32::cordic::csr::W);
-        }
-
+    pub mod data_count {
         pub struct One;
         pub struct Two;
-    }
 
-    pub mod nres {
-        pub(crate) trait State {
-            fn set(w: &mut crate::stm32::cordic::csr::W);
+        pub mod arg {
+            pub(crate) trait State {
+                fn set(w: &mut crate::stm32::cordic::csr::W);
+            }
         }
 
-        pub struct One;
-        pub struct Two;
+        pub mod res {
+            pub(crate) trait State {
+                fn set(w: &mut crate::stm32::cordic::csr::W);
+            }
+        }
     }
 
     ..
@@ -623,6 +624,7 @@ impl State for Two {
     }
 }
 ```
+> Implementations for results are very similar.
 
 Wait... the behavior of `State::set` for two function arguments is dependent on the
 argument type! For `Two`, if the argument type is `Q15`, only one regiester write is needed, but if
@@ -634,21 +636,23 @@ Let's adjust the traits:
 
 ```rust
 pub mod func {
-    pub mod nargs {
-        pub(crate) trait State<Arg>
-        where
-            Arg: arg_type::State,
-        {
-            fn set(w: &mut crate::stm32::cordic::csr::W);
+    pub mod data_count {
+        pub mod arg {
+            pub(crate) trait State<Arg>
+            where
+                Arg: data_type::arg::State,
+            {
+                fn set(w: &mut crate::stm32::cordic::csr::W);
+            }
         }
-    }
 
-    pub mod nres {
-        pub(crate) trait State<Res>
-        where
-            Res: res_type::State,
-        {
-            fn set(w: &mut crate::stm32::cordic::csr::W);
+        pub mod res {
+            pub(crate) trait State<Res>
+            where
+                Res: data_type::res::State,
+            {
+                fn set(w: &mut crate::stm32::cordic::csr::W);
+            }
         }
     }
 }
@@ -659,7 +663,7 @@ pub mod func {
 ```rust
 impl<Arg> State<Arg> for One
 where
-    Arg: arg_type::State,
+    Arg: data_type::arg::State,
 {
     fn set(w: &mut crate::stm32::cordic::csr::W) {
         w.nargs().num1();
@@ -668,7 +672,7 @@ where
 
 impl<Arg> State<Arg> for Two
 where
-    Arg: arg_type::State,
+    Arg: data_type::arg::State,
 {
     fn set(w: &mut crate::stm32::cordic::csr::W) {
         w.nargs(). // Arg::Something?
@@ -682,19 +686,21 @@ Well, this is what associated constants are for! Just like for precision, argume
 types will define their bitfield value as a `BITS` constant:
 
 ```rust
-pub mod arg_type {
-    pub(crate) trait State {
-        const BITS: bool;
+pub mod data_type {
+    pub mod arg {
+        pub(crate) trait State {
+            const BITS: bool;
 
-        fn set(w: &mut crate::stm32::cordic::csr::W);
+            fn set(w: &mut crate::stm32::cordic::csr::W);
+        }
     }
-}
 
-pub mod res_type {
-    pub(crate) trait State {
-        const BITS: bool;
+    pub mod res {
+        pub(crate) trait State {
+            const BITS: bool;
 
-        fn set(w: &mut crate::stm32::cordic::csr::W);
+            fn set(w: &mut crate::stm32::cordic::csr::W);
+        }
     }
 }
 ```
@@ -704,7 +710,7 @@ pub mod res_type {
 ```rust
 impl<Arg> State<Arg> for One
 where
-    Arg: arg_type::State,
+    Arg: data_type::arg::State,
 {
     fn set(w: &mut crate::stm32::cordic::csr::W) {
         w.nargs().num1();
@@ -713,7 +719,7 @@ where
 
 impl<Arg> State<Arg> for Two
 where
-    Arg: arg_type::State,
+    Arg: data_type::arg::State,
 {
     fn set(w: &mut crate::stm32::cordic::csr::W) {
         w.nargs().bit(!Arg::BITS);
@@ -728,11 +734,11 @@ Now we can write out our function trait with the type-state dependencies and sub
 pub mod func {
     pub(crate) trait State<Arg, Res>
     where
-        Arg: arg_type::State,
-        Res: res_type::State,
+        Arg: data_type::arg::State,
+        Res: data_type::res::State,
     {
-        type NArgs: nargs::State<Arg>;
-        type NRes: nres::State<Res>;
+        type NArgs: data_count::arg::State<Arg>;
+        type NRes: data_count::res::State<Res>;
 
         fn set(w: &mut crate::stm32::cordic::csr::W);
     }
@@ -794,17 +800,17 @@ Now let's try implementing the function trait:
 ```rust
 impl<Arg, Res, Scale> State<Arg, Res> for Atan<Scale>
 where
-    Arg: arg_type::State,
-    Res: res_type::State,
+    Arg: data_type::arg::State,
+    Res: data_type::res::State,
     Scale: scale::State,
 {
-    type NArgs = nargs::One;
-    type NRes = nres::One;
+    type NArgs = data_count::One;
+    type NRes = data_count::One;
 
     fn set(w: &mut crate::stm32::cordic::csr::W) {
         // set our sub-type-states' configuration
-        <Self::NArgs as nargs::State<Arg>>::set(w);
-        <Self::NRes as nres::State<Res>>::set(w);
+        <Self::NArgs as data_count::arg::State<Arg>>::set(w);
+        <Self::NRes as data_count::res::State<Res>>::set(w);
 
         // set our own configuration
         <Scale as scale::State>::set(w);
@@ -825,25 +831,25 @@ Here are the signatures for the two declarative macros that accomplish this:
 
 ```rust
 impls! {
-    (Cos<scale::N0>, cosine, nargs::One, nres::One, start(angle)),
-    (Sin<scale::N0>, sine, nargs::One, nres::One, start(angle)),
-    (SinCos<scale::N0>, sine, nargs::One, nres::Two, start(angle)),
-    (CosM<scale::N0>, cosine, nargs::Two, nres::One, start(angle, modulus)),
-    (SinM<scale::N0>, sine, nargs::Two, nres::One, start(angle, modulus)),
-    (SinCosM<scale::N0>, sine, nargs::Two, nres::Two, start(angle, modulus)),
-    (ATan2<scale::N0>, phase, nargs::Two, nres::One, start(x, y)),
-    (Magnitude<scale::N0>, modulus, nargs::Two, nres::One, start(x, y)),
-    (ATan2Magnitude<scale::N0>, phase, nargs::Two, nres::Two, start(x, y)),
-    (CosH<scale::N1>, hyperbolic_cosine, nargs::One, nres::One, start(x)),
-    (SinH<scale::N1>, hyperbolic_sine, nargs::One, nres::One, start(x)),
-    (SinHCosH<scale::N1>, hyperbolic_cosine, nargs::One, nres::Two, start(x)),
-    (ATanH<scale::N1>, arctanh, nargs::One, nres::One, start(x)),
+    (Cos<scale::N0>, cosine, One, One, start(angle)),
+    (Sin<scale::N0>, sine, One, One, start(angle)),
+    (SinCos<scale::N0>, sine, One, Two, start(angle)),
+    (CosM<scale::N0>, cosine, Two, One, start(angle, modulus)),
+    (SinM<scale::N0>, sine, Two, One, start(angle, modulus)),
+    (SinCosM<scale::N0>, sine, Two, Two, start(angle, modulus)),
+    (ATan2<scale::N0>, phase, Two, One, start(x, y)),
+    (Magnitude<scale::N0>, modulus, Two, One, start(x, y)),
+    (ATan2Magnitude<scale::N0>, phase, Two, Two, start(x, y)),
+    (CosH<scale::N1>, hyperbolic_cosine, One, One, start(x)),
+    (SinH<scale::N1>, hyperbolic_sine, One, One, start(x)),
+    (SinHCosH<scale::N1>, hyperbolic_cosine, One, Two, start(x)),
+    (ATanH<scale::N1>, arctanh, One, One, start(x)),
 }
 
 impls_multi_scale! {
-    (ATan<scale::N0, scale::N1, scale::N2, scale::N3, scale::N4, scale::N5, scale::N6, scale::N7>, arctangent, nargs::One, nres::One, start(x)),
-    (Ln<scale::N1, scale::N2, scale::N3, scale::N4>, natural_logarithm, nargs::One, nres::One, start(x)),
-    (Sqrt<scale::N0, scale::N1, scale::N2>, square_root, nargs::One, nres::One, start(x)),
+    (ATan<scale::N0, scale::N1, scale::N2, scale::N3, scale::N4, scale::N5, scale::N6, scale::N7>, arctangent, One, One, start(x)),
+    (Ln<scale::N1, scale::N2, scale::N3, scale::N4>, natural_logarithm, One, One, start(x)),
+    (Sqrt<scale::N0, scale::N1, scale::N2>, square_root, One, One, start(x)),
 }
 ```
 > These macros are rather large, and the details of their operation are not important.
@@ -941,40 +947,40 @@ The macros have multiple token patterns so they can be dispatched recursively:
 ```rust
 macro_rules! impls {
     // root / config
-    ( $( ($NAME:ident < $SCALE:ty >, $FUNC:ident, nargs::$NARGS:ident, nres::$NRES:ident, start( $($START_PARAM:ident),+ )) $(,)?)+ ) => {
+    ( $( ($NAME:ident < $SCALE:ty >, $FUNC:ident, $NARGS:ident, $NRES:ident, start( $($START_PARAM:ident),+ )) $(,)?)+ ) => {
         $(
             impl<Arg, Res> State<Arg, Res> for $NAME
             where
-                Arg: arg_type::State,
-                Res: res_type::State,
+                Arg: data_type::arg::State,
+                Res: data_type::res::State,
             {
-                type NArgs = nargs::$NARGS;
-                type NRes = nres::$NRES;
+                type NArgs = data_count::$NARGS;
+                type NRes = data_count::$NRES;
 
                 fn set(w: &mut crate::stm32::cordic::csr::W) {
-                    <Self::NArgs as nargs::State<Arg>>::set(w);
-                    <Self::NRes as nres::State<Res>>::set(w);
+                    <Self::NArgs as data_count::arg::State<Arg>>::set(w);
+                    <Self::NRes as data_count::res::State<Res>>::set(w);
                     <$SCALE as scale::State>::set(w);
                     w.func().$FUNC();
                 }
             }
 
-            impls!($NAME, nargs::$NARGS, start( $($START_PARAM),+ ));
-            impls!($NAME, nres::$NRES);
+            impls!($NAME, $NARGS, start( $($START_PARAM),+ ));
+            impls!($NAME, $NRES);
         )+
     };
 
     // impl start for one arg
-    ($NAME:ty, nargs::One, start( $PRIMARY:ident )) => { .. };
+    ($NAME:ty, One, start( $PRIMARY:ident )) => { .. };
 
     // impl start for two args
-    ($NAME:ty, nargs::Two, start( $PRIMARY:ident, $SECONDARY:ident )) => { .. };
+    ($NAME:ty, Two, start( $PRIMARY:ident, $SECONDARY:ident )) => { .. };
 
     // impl result for one result
-    ($NAME:ty, nres::One) => { .. };
+    ($NAME:ty, One) => { .. };
 
     // impl result for two results
-    ($NAME:ty, nres::Two) => { .. };
+    ($NAME:ty, Two) => { .. };
 }
 ```
 > `impls_multi_scale` is very similar to `impls`.
@@ -1008,8 +1014,8 @@ pub type CordicReset = Cordic<data_type::Q31, data_type::Q31, func::Cos, prec::P
 
 impl<Arg, Res, Func, Prec> proto::IntoReset for Cordic<Arg, Res, Func, Prec>
 where
-    Arg: arg_type::State,
-    Res: res_type::State,
+    Arg: data_type::arg::State,
+    Res: data_type::res::State,
     Func: func::State<Arg, Res>,
     Prec: prec::State,
 {
@@ -1035,8 +1041,8 @@ We can implement it concretely:
 ```rust
 impl<Arg, Res, Func, Prec> Cordic<Arg, Res, Func, Prec>
 where
-    Arg: arg_type::State,
-    Res: res_type::State,
+    Arg: data_type::arg::State,
+    Res: data_type::res::State,
     Func: func::State<Arg, Res>,
     Prec: prec::State,
 {
@@ -1057,14 +1063,14 @@ the interrupt enable.
 ### Release
 
 It is conceivable that we may want to, at times, *unconstrain* the resource back to its
-raw form. This could be useful for recombinging split[^3] resources to reconfigure the
+raw form. This could be useful for recombining split[^3] resources to reconfigure the
 umbrella resource to be resplit.
 
 ```rust
 impl<Arg, Res, Func, Prec> Cordic<Arg, Res, Func, Prec>
 where
-    Arg: arg_type::State,
-    Res: res_type::State,
+    Arg: data_type::arg::State,
+    Res: data_type::res::State,
     Func: func::State<Arg, Res>,
     Prec: prec::State,
 {
@@ -1225,10 +1231,7 @@ fn cordic_init(rb: hal::stm32::CORDIC) -> TestCordic {
  800042e: 4770         	bx	lr
 ```
 
-It's cool to see how our type-state combinations are baked as immediate values
-in the assembly.
-
-Now with our interface:
+Now with the abstraction:
 
 ```rust
 #[no_mangle]
@@ -1254,6 +1257,8 @@ fn cordic_init(rb: hal::stm32::CORDIC, rcc: &mut rcc::Rcc) -> TestCordic {
  8000422: 5042         	str	r2, [r0, r1]
  8000424: 4770         	bx	lr
 ```
+> It's cool to see how our type-state combinations are baked as immediate values
+in the assembly.
 
 Are my eyes deceiving me? It's shorter??
 
