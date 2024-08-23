@@ -1,7 +1,7 @@
 +++
 title = 'Adin Ackerman'
 draft = false
-top = "true"
+top = true
 +++
 
 I'm Adin, an electrical and software engineer from San Diego, CA.

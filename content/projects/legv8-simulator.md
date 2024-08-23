@@ -5,7 +5,7 @@ draft = false
 interests = ["swiftui", "tools"]
 summary = "A SwiftUI application for writing, executing, and debugging LEGv8 assembly code with a series of visual tools."
 github = "https://github.com/AdinAck/LEGv8-Simulator"
-featured = "true"
+featured = true
 +++
 
 A SwiftUI application for writing, executing, and debugging LEGv8 assembly code with a series of visual tools.

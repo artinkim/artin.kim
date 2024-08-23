@@ -1,4 +1,4 @@
 +++
-draft = "false"
-top = "true"
+draft = false
+top = true
 +++

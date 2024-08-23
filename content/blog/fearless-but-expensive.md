@@ -1,6 +1,6 @@
 +++
 title = "Fearless But Expensive"
-draft = "false"
+draft = false
 date = 2024-03-19
 interests = ["embedded", "rust"]
 summary = "Rust boasts \"Fearless Concurrency\" via it's async/await interface. This interface is incomplete, but is production ready and very powerful. In Embedded Systems contexts, the use of async as a first class citizen is tantalizing to say the least, but there's no such thing as a free lunch. When dealing with safety critical systems, many operations are time-sensitive. Is async up to snuff?"

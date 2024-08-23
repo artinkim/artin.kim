@@ -1,4 +1,4 @@
 +++
 draft = false
-top = "true"
+top = true
 +++

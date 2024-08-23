@@ -83,7 +83,7 @@
 }
 /* KeywordPseudo */
 .chroma .kp {
-    color: #007020;
+    color: #8e8e8eff;
 }
 /* KeywordReserved */
 .chroma .kr {
@@ -200,8 +200,7 @@
 }
 /* LiteralStringDoc */
 .chroma .sd {
-    color: #98bb05ff;
-    font-style: italic;
+    color: #808080;
 }
 /* LiteralStringDouble */
 .chroma .s2 {

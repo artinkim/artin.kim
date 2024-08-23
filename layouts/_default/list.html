@@ -1,6 +1,6 @@
 {{ define "main" }}
 <div class="post">
-    {{ if ne .Params.top "true" }}
+    {{ if not .Params.top }}
         {{ partial "back-button.html" }}
     {{ end }}
 
@@ -39,7 +39,7 @@
             <div class="post-listing">
                 <div class="post-listing-head">
                     <h2>
-                        <a class="post-name {{ if eq .Params.featured "true" }}featured{{ end }} {{ .Type }}" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+                        <a class="post-name {{ if .Params.featured }}featured{{ end }} {{ .Type }}" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
                     </h2>
 
                     {{ $inner_page := . }}
