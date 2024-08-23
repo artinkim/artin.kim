@@ -16,7 +16,7 @@ this time I was always left yearning for more. Yearning for greater invariance, 
 
 So that's what I've set out to do, design a system, process, or guideline for designing HALs that fully leverage Rust's capabilities.
 
-To explore some of my ideas, and give a go at laying out this "prototype hal" (we can call it proto-hal) let's design a HAL component
+To explore some of my ideas, and give a go at laying out this "prototype" HAL, (we can call it proto-hal) let's design a HAL component
 for a peripheral from the ground up.
 
 I am doing some work with the G4 that would benefit from accelerated trigonometric functions, so let's create an interface for the
