@@ -1079,7 +1079,9 @@ where
     }
 
     pub fn release_and_reset(self, rcc: &mut Rcc) -> CORDIC {
-        let reset: CordicReset = self.freeze();
+        use proto::IntoReset as _;
+
+        let reset = self.into_reset();
 
         rcc.rb.ahb1enr.modify(|_, w| w.cordicen().clear_bit());
 
