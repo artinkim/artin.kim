@@ -14,12 +14,14 @@
                 <time datetime="{{ . }}">{{ $dateHuman }}</time>
             {{ end }}
 
-            {{ range .Params.interests }}
-                <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
-                    <p>#</p>
-                    <p>{{ . }}</p>
-                </a>
-            {{ end }}
+            <div class="tags">
+                {{ range .Params.interests }}
+                    <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
+                        <p>#</p>
+                        <p>{{ . }}</p>
+                    </a>
+                {{ end }}
+            </div>
 
             {{ with .Params.github }}
                 <a class="github" href="{{ . }}" target="_tab">

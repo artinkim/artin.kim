@@ -99,12 +99,6 @@ pre code {
     margin: 0 1rem 0 1rem;
 }
 
-.full-page {
-    display: grid;
-    grid-template-rows: 1fr 1fr 1fr;
-    overflow: hidden;
-}
-
 .splash {
     align-self: center;
     margin: auto;
@@ -190,7 +184,7 @@ header {
 }
 
 .post-neck {
-    height: 2rem;
+    align-items: center;
 }
 
 .post-neck time {
@@ -199,20 +193,27 @@ header {
 }
 
 .post-listing {
+    margin-bottom: 1rem;
 }
 
 .post-listing-head {
     display: flex;
     flex-direction: row;
+    align-items: end;
+    margin: 0 0 1rem 0;
+}
+
+.post-listing-head h2 {
+    margin-bottom: 0;
 }
 
 .post-listing-head a {
-    margin: auto 1rem auto 0;
+    margin: auto 1rem 0 0;
     text-decoration: none;
 }
 
 .post-listing-head .tag {
-    margin: auto 0.2rem;
+    margin: 0.25rem 0.25rem 0 0;
     text-decoration: none;
 }
 
@@ -251,6 +252,7 @@ header {
 
 .github {
     margin-left: auto;
+    padding-left: 0.5rem;
     height: 2rem;
 }
 
@@ -308,6 +310,11 @@ blockquote p {
     font-family: "SF Mono";
 }
 
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+}
+
 @media only screen and (max-width: 70rem) {
     h1 {
         font-size: 2rem;
@@ -315,6 +322,12 @@ blockquote p {
 
     .back-button-wrapper {
         display: none;
+    }
+
+    .post-listing-head {
+        flex-direction: column;
+        align-items: start;
+        margin-bottom: 0.5rem;
     }
 }
 
@@ -325,9 +338,6 @@ blockquote p {
 
     .menu {
         flex-direction: column;
-    }
-
-    .menu {
         gap: 0.5rem;
     }
 }

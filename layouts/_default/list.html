@@ -12,25 +12,29 @@
 
     <div class="post-content">
         {{ $page := . }}
-        <div class="post-neck secondary-anim">
-            {{ with .Params.Date }}
-                {{ $dateHuman := $page.Date | time.Format ":date_long" }}
-                <time datetime="{{ . }}">{{ $dateHuman }}</time>
-            {{ end }}
+        {{ if .Params.Date }}
+            <div class="post-neck secondary-anim">
+                {{ with .Params.Date }}
+                    {{ $dateHuman := $page.Date | time.Format ":date_long" }}
+                    <time datetime="{{ . }}">{{ $dateHuman }}</time>
+                {{ end }}
 
-            {{ range .Params.interests }}
-                <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
-                    <p>#</p>
-                    <p>{{ . }}</p>
-                </a>
-            {{ end }}
+                <div class="tags">
+                    {{ range .Params.interests }}
+                        <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
+                            <p>#</p>
+                            <p>{{ . }}</p>
+                        </a>
+                    {{ end }}
+                </div>
 
-            {{ with .Params.github }}
-                <a class="github" href="{{ . }}" target="_tab">
-                    <embed class="github" src="/icons/github-mark-white.png">
-                </a>
-            {{ end }}
-        </div>
+                {{ with .Params.github }}
+                    <a class="github" href="{{ . }}" target="_tab">
+                        <embed class="github" src="/icons/github-mark-white.png">
+                    </a>
+                {{ end }}
+            </div>
+        {{ end }}
 
         <div class="tertiary-anim">{{ .Content }}</div>
 
@@ -48,14 +52,16 @@
                         <a href="{{ $inner_page.RelPermalink }}"><time datetime="{{ . }}">{{ $dateHuman }}</time></a>
                     {{ end }}
 
-                    {{ range .Params.interests }}
-                        {{ if ne . $page.Name }} <!-- remove tag if in tag page -->
-                            <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
-                                <p>#</p>
-                                <p>{{ . }}</p>
-                            </a>
+                    <div class="tags">
+                        {{ range .Params.interests }}
+                            {{ if ne . $page.Name }} <!-- remove tag if in tag page -->
+                                <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
+                                    <p>#</p>
+                                    <p>{{ . }}</p>
+                                </a>
+                            {{ end }}
                         {{ end }}
-                    {{ end }}
+                    </div>
                 </div>
                 <a class="summary tertiary-anim" href="{{ .RelPermalink }}">{{ .Summary }}</a>
             </div>
