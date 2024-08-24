@@ -1,7 +1,29 @@
 {{ define "main" }}
-<div class="full-page">
-    <div class="splash">
-        <h2 class="error primary-anim">404 :/</h2>
+<main class="fill">
+    <div class="full-page">
+        <div class="splash">
+            <h2 class="four-o-four primary-anim">404 :/</h2>
+
+            {{ with site.Menus.main }}
+            <nav class="menu secondary-anim">
+                <div class="menu-item">
+                    <p class="menu-item-aux">></p>
+                    <a class="inactive" href="/">home</a>
+                    <p class="menu-item-aux"><</p>
+                </div>
+
+                {{ range . }}
+                <div class="menu-item">
+                    <p class="menu-item-aux">></p>
+                    <a class="inactive {{ .Name }}" href="{{ .URL }}"
+                        >{{ .Name }}</a
+                    >
+                    <p class="menu-item-aux"><</p>
+                </div>
+                {{ end }}
+            </nav>
+            {{ end }}
+        </div>
     </div>
-</div>
+</main>
 {{ end }}

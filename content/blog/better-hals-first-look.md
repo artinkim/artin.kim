@@ -530,7 +530,7 @@ pub mod prec {
 In this case, we were able to leverage associated constants to allow
 type-states to specify the value of a bitfield directly.
 
-This operation is `unsafe` because not all bitfield values are valid.
+This operation is {{< special unsafe >}} because not all bitfield values are valid.
 
 If a foreign type were to implement `State` with `State::BITS` equal to
 `0`, and were set, it would result in an invalid peripheral coonfiguration
@@ -1089,7 +1089,7 @@ where
 ```
 
 The simplest operation (just extracting the resource and throwing away the abstraction)
-is `unsafe` because an assumption we made earlier was that any unwrapped resource shall
+is {{< special unsafe >}} because an assumption we made earlier was that any unwrapped resource shall
 be in a reset state. Additionally, since this is hardware we are dealing with, it could
 continue operating and interacting with other resources even though it is no longer
 represented in our program.

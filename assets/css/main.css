@@ -95,6 +95,12 @@ pre code {
     margin: 1rem;
 }
 
+p code {
+    color: #a0a0a0;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
 .line {
     margin: 0 1rem 0 1rem;
 }
@@ -304,15 +310,34 @@ blockquote p {
     color: #808080;
 }
 
-.error {
-    margin: 50% auto auto auto;
+.four-o-four {
+    margin: auto;
     color: red;
     font-family: "SF Mono";
+    text-align: center;
 }
 
 .tags {
     display: flex;
     flex-wrap: wrap;
+}
+
+.unsafe {
+    color: #ff4040;
+    text-shadow: #ff4040 0 0 5rem;
+}
+
+.DENY,
+.error {
+    color: #ff4040;
+}
+
+.warning {
+    color: #ffe040;
+}
+
+.OK {
+    color: #40ff40;
 }
 
 @media only screen and (max-width: 70rem) {
