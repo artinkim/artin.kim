@@ -831,25 +831,25 @@ Here are the signatures for the two declarative macros that accomplish this:
 
 ```rust
 impls! {
-    (Cos<scale::N0>, cosine, One, One, start(angle)),
-    (Sin<scale::N0>, sine, One, One, start(angle)),
-    (SinCos<scale::N0>, sine, One, Two, start(angle)),
-    (CosM<scale::N0>, cosine, Two, One, start(angle, modulus)),
-    (SinM<scale::N0>, sine, Two, One, start(angle, modulus)),
-    (SinCosM<scale::N0>, sine, Two, Two, start(angle, modulus)),
-    (ATan2<scale::N0>, phase, Two, One, start(x, y)),
-    (Magnitude<scale::N0>, modulus, Two, One, start(x, y)),
-    (ATan2Magnitude<scale::N0>, phase, Two, Two, start(x, y)),
-    (CosH<scale::N1>, hyperbolic_cosine, One, One, start(x)),
-    (SinH<scale::N1>, hyperbolic_sine, One, One, start(x)),
-    (SinHCosH<scale::N1>, hyperbolic_cosine, One, Two, start(x)),
-    (ATanH<scale::N1>, arctanh, One, One, start(x)),
+    (Cos<N0>, cosine, One, One, start(angle)),
+    (Sin<N0>, sine, One, One, start(angle)),
+    (SinCos<N0>, sine, One, Two, start(angle)),
+    (CosM<N0>, cosine, Two, One, start(angle, modulus)),
+    (SinM<N0>, sine, Two, One, start(angle, modulus)),
+    (SinCosM<N0>, sine, Two, Two, start(angle, modulus)),
+    (ATan2<N0>, phase, Two, One, start(x, y)),
+    (Magnitude<N0>, modulus, Two, One, start(x, y)),
+    (ATan2Magnitude<N0>, phase, Two, Two, start(x, y)),
+    (CosH<N1>, hyperbolic_cosine, One, One, start(x)),
+    (SinH<N1>, hyperbolic_sine, One, One, start(x)),
+    (SinHCosH<N1>, hyperbolic_cosine, One, Two, start(x)),
+    (ATanH<N1>, arctanh, One, One, start(x)),
 }
 
 impls_multi_scale! {
-    (ATan<scale::N0, scale::N1, scale::N2, scale::N3, scale::N4, scale::N5, scale::N6, scale::N7>, arctangent, One, One, start(x)),
-    (Ln<scale::N1, scale::N2, scale::N3, scale::N4>, natural_logarithm, One, One, start(x)),
-    (Sqrt<scale::N0, scale::N1, scale::N2>, square_root, One, One, start(x)),
+    (ATan<N0, N1, N2, N3, N4, N5, N6, N7>, arctangent, One, One, start(x)),
+    (Ln<N1, N2, N3, N4>, natural_logarithm, One, One, start(x)),
+    (Sqrt<N0, N1, N2>, square_root, One, One, start(x)),
 }
 ```
 > These macros are rather large, and the details of their operation are not important.
@@ -947,7 +947,7 @@ The macros have multiple token patterns so they can be dispatched recursively:
 ```rust
 macro_rules! impls {
     // root / config
-    ( $( ($NAME:ident < $SCALE:ty >, $FUNC:ident, $NARGS:ident, $NRES:ident, start( $($START_PARAM:ident),+ )) $(,)?)+ ) => {
+    ( $( ($NAME:ident < $SCALE:ident >, $FUNC:ident, $NARGS:ident, $NRES:ident, start( $($START_PARAM:ident),+ )) $(,)?)+ ) => {
         $(
             impl<Arg, Res> State<Arg, Res> for $NAME
             where
@@ -960,7 +960,7 @@ macro_rules! impls {
                 fn set(w: &mut crate::stm32::cordic::csr::W) {
                     <Self::NArgs as data_count::arg::State<Arg>>::set(w);
                     <Self::NRes as data_count::res::State<Res>>::set(w);
-                    <$SCALE as scale::State>::set(w);
+                    <scale::$SCALE as scale::State>::set(w);
                     w.func().$FUNC();
                 }
             }
