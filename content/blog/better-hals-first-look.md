@@ -57,7 +57,7 @@ if results are ready to be read.
 
 ### ARGSIZE
 
-The CORDIC co-processor supports two data types:
+The Cordic co-processor supports two data types:
 - q1.31
 - q1.15
 
@@ -94,7 +94,7 @@ a complete read of the function results, is configured with this bit.
 
 ### IEN
 
-The CORDIC is capable of generating interrupts upon evaluation completion.
+The Cordic is capable of generating interrupts upon evaluation completion.
 
 Whether or not it *should* is configured with this bit.
 
@@ -107,7 +107,7 @@ This bitfield represents $n$, resulting in a scaling factor of $2^{-n}$.
 
 ### PRECISION
 
-The CORDIC algorithm is iterative, we can configure the *number* of iterations
+The Cordic algorithm is iterative, we can configure the *number* of iterations
 with this bitfield.
 
 ### FUNC
@@ -120,7 +120,7 @@ Nice, these are some pretty simple properties to configure.
 
 ## Direct Registers
 
-Let's use the `stm32-pac` (peripheral access crate) to try configuring the CORDIC.
+Let's use the `stm32-pac` (peripheral access crate) to try configuring the Cordic.
 
 ```rust
 fn configure_cordic(rb: stm32::cordic::CORDIC) {
@@ -150,7 +150,7 @@ fn configure_cordic(rb: stm32::cordic::CORDIC) {
 }
 ```
 
-How does that work? Rust already knows how to use the CORDIC?
+How does that work? Rust already knows how to use the Cordic?
 
 *Kind of!*
 
@@ -181,7 +181,7 @@ This is a full configuration of the peripheral. Looks fine doesn't it. It certai
 Can you see the problem?
 
 The problem is we set `ARGSIZE` to `bits16` *and* `NARGS` to `num2`. In English,
-we told the CORDIC to expect two register writes of q1.15 arguments... which is *impossible*.
+we told the Cordic to expect two register writes of q1.15 arguments... which is *impossible*.
 
 Two q1.15 arguments are supposed to be stored in a single word and written once.
 
@@ -208,7 +208,7 @@ trying to use it later to evaluate our arguments.
 
 It's a trick question!
 
-Nothing about the **type** of `rb` indicates to us how the CORDIC was configured.
+Nothing about the **type** of `rb` indicates to us how the Cordic was configured.
 
 Does it expect two register writes? What data type was it configured to? What function
 is it going to run?
@@ -220,804 +220,445 @@ So how can we do better?
 How can we leverage Rust's type system to represent these configurations
 and enforce valildity?
 
-## The Power of Types
+## Type-States
 
-The first step, is creating our very own type which will hold the CORDIC resource `rb`
-and **constrain** its operation to remain within a state-space of our design.
+Let's outline some fundamental ideas to get us started.
 
-So let's start by defining our type:
+### State
+
+We will create types which directly correspond to specific hardware states called **type-states**.
+
+Usually the hardware states will be in the form of register bitfields.
+
+Type-states will implement a trait that looks like this:
 
 ```rust
-pub struct Cordic {
-    rb: stm32::cordic::CORDIC,
+trait State {
+    const RAW: Raw;
+
+    fn set(binding: Binding) -> Self;
 }
 ```
 
-...but... this doesn't really change anything.
+The const `RAW` will hold the type-states bitfield value.
 
-The naive approach to achieving our goal would be adding additional
-member attributes to our type that indicate the current configuration.
+The function `set` will accept a binding that provides write access
+to the appropriate bitfield, and return the type-state.
 
-Something like:
+The latter aspect is important because if instances of type-states
+can only exist when the hardware is configured to represent them,
+we can make any process or type *own* the type-states it requires,
+for compile-time enforcement.
+
+Let's implement our type-states now:
+
+### ArgSize/ResSize
+
+The first bitfields of the Cordic control register are for the argument and result size (type).
+
+Recall, there are two possible types: q1.31 or q1.15. We can create types to represent this:
 
 ```rust
-pub struct Cordic {
-    rb: stm32::cordic::CORDIC,
-    arg_size: ArgSize,
-    res_size: ResSize,
-    func: Func,
-    // etc...
+/// q1.15 fixed point number.
+pub struct Q15;
+/// q1.31 fixed point number.
+pub struct Q31;
+```
+
+Really, we *should* use types from the `fixed` crate for the interfaces we will create, but
+to avoid massive type signature cluttering, we can use the above types as `Tag`s for the actual
+fixed types:
+
+```rust
+/// Extension trait for fixed point types.
+trait Ext: Fixed {
+    /// Tag representing this type.
+    type Tag: Tag<Repr = Self>;
+}
+
+/// Trait for tags to represent Cordic argument or result data.
+trait Tag {
+    /// Internal fixed point representation.
+    type Repr: Ext<Tag = Self>;
 }
 ```
 
-The first reason this is not the correct solution is that we increased
-our memory footprint for no reason. These states are already present
-in the peripheral registers, which we can read at any time.
-
-The second reason this is not the correct solution is that it
-unnecessarily *incurs a runtime cost* for usage.
-
-When we put the CORDIC in sine mode, do we need to... check that again?
-
-If anything can reconfigure our resource willy nilly, then, maybe. But we
-are trying to **constrain** our resource such that we are the *only*
-actors that can mutate it, and **freeze** our resource such that any
-binding we have to it represents a fixed configuration.
-
-Let's bring these ideas to life.
-
-The fundamental building block of this design is the use of **type-states**.
-
-Type-states are zero-size-types[^2] which purely exist to represent
-states in the type system.
-
-Let's create a trait for each property of the peripheral which
-can be configured, and possible type-states of that property
-which implement that trait, and incorporate them into our abstraction
-as generics:
+...and implement them:
 
 ```rust
-pub struct Cordic<Arg, Res, NArgs, NRes, Scale, Prec, Func>
+impl Ext for I1F15 {
+    type Tag = Q15;
+}
+
+impl Ext for I1F31 {
+    type Tag = Q31;
+}
+
+impl Tag for Q15 {
+    type Repr = I1F15;
+}
+
+impl Tag for Q31 {
+    type Repr = I1F31;
+}
+```
+> `I1F15` and `I1F31` come from `fixed`.
+
+Now, we can create the type-state traits for the `Q15` and `Q31` types:
+
+```rust
+mod arg {
+    type Raw = csr::ARGSIZE;
+
+    /// Trait for argument type-states.
+    trait State: Tag {
+        const RAW: Raw;
+
+        fn set(w: csr::ARGSIZE_W<csr::CSRrs>) -> Self;
+    }
+}
+
+mod res {
+    type Raw = csr::RESSIZE;
+
+    /// Trait for result type-states.
+    trait State: Tag {
+        const RAW: Raw;
+
+        fn set(w: csr::RESSIZE_W<csr::CSRrs>) -> Self;
+    }
+}
+```
+
+...and implement them (with macros):
+
+```rust
+macro_rules! impls {
+    ( $( ($NAME:ty, $RAW:ident) $(,)? )+ ) => {
+        $(
+            impl State for $NAME {
+                const RAW: Raw = Raw::$RAW;
+
+                fn set(w: csr::ARGSIZE_W<csr::CSRrs>) -> Self {
+                    w.variant(Self::RAW);
+
+                    Self
+                }
+            }
+        )+
+    };
+}
+
+impls! {
+    (Q31, Bits32),
+    (Q15, Bits16),
+}
+```
+> The result macro is very similar.
+
+### NArgs/NRes
+
+The next bitfields configure the number of register reads/writes expected.
+
+This is a little more complicated, because the value of these type-states is dependent
+on others.
+
+For example, if two arguments are to be written of the q1.15 format, only one register write
+is needed. But if the data type is q1.31, *two* register writes are needed.
+
+So some kind of "data count" and "data type" information is needed to determine the
+number of register interactions.
+
+We have "data type" done, let's add "data count" types to our system.
+
+These won't be type-states, as there is no hardware configuration pertaining
+to number of *values* to be passed. So rather than making a `State` trait,
+we'll call this a `Property`:
+
+```rust
+enum Count {
+    One,
+    Two,
+}
+
+struct One;
+struct Two;
+
+trait Property {
+    const COUNT: Count;
+}
+
+impl Property for One {
+    const COUNT: Count = Count::One;
+}
+
+impl Property for Two {
+    const COUNT: Count = Count::Two;
+}
+```
+> Similarly to how type-states hold a `RAW` const, this property holds a `COUNT` const
+> to indicate which count it is statically.
+
+With this, we can create our type-states for register interactions:
+
+```rust
+struct NReg<T, Count>
 where
-    Arg: arg_type::State,
-    Res: res_type::State,
-    NArgs: nargs::State,
-    NRes: nres::State,
-    Scale: scale::State,
-    Prec: prec::State,
-    Func: func::State,
+    T: types::Tag,
+    Count: data_count::Property
 {
-    rb: stm32::cordic::CORDIC,
-    _arg_size: PhantomData<Arg>,
-    _res_size: PhantomData<Res>,
-    _nargs: PhantomData<NArgs>,
-    _nres: PhantomData<NRes>,
-    _scale: PhantomData<Scale>,
-    _prec: PhantomData<Prec>,
-    _func: PhantomData<Func>,
+    _t: PhantomData<T>,
+    _count: PhantomData<Count>,
 }
 ```
-> `PhantomData` enables zero-size generics.
 
-That's a lot of states!
-
-These are every configurable property of the peripheral encoded as type-states.
-
-But as we will find out later, many of these are tightly coupled with and/or
-dependent on each other and will be absorbed.
-
-Let's define the type which represents the peripheral in its reset state.
-> This would be found by reading the reset value in the reference manual.
+Let's look at the `State` trait for nargs:
 
 ```rust
-pub type CordicReset = Cordic<State1, State2, ..>;
-```
-
-Now, let's make an extension trait for `CORDIC` that defines
-a new function that consumes the resource and wraps it with our
-abstracted type (the **constraining** mentioned earlier):
-
-```rust
-pub trait Ext {
-    fn constrain(self, rcc: &mut Rcc) -> CordicReset;
+trait State {
+    fn set(w: csr::NARGS_W<csr::CSRrs>) -> Self;
 }
 ```
-> We assume if the resource is ever *not* enclosed by our abstraction,
-> that it is in the reset state.
 
 ...and implement it:
 
 ```rust
-impl Ext for CORDIC {
-    fn constrain(self, rcc: &mut Rcc) -> CordicReset {
-        rcc.rb.ahb1enr.modify(|_, w| w.cordicen().set_bit());
-
-        // type-states inferred
-        Cordic {
-            rb: self,
-            _state1: PhantomData,
-            _state2: PhantomData,
-            ..
-        }
-    }
-}
-```
-> In addition to taking the resource, we borrow the `RCC` to enable the `AHB` lane for the CORDIC.
-> This could be deferred to peripheral specific functions like `enable` or `disable` and this state
-> could also be encoded as a type-state. For more complex peripherals this may be desirable, but for
-> this case I deemed it unnecessary.
-
-Now, let's implement `freeze`. This function represents the transformation from one configuration
-to another:
-
-```rust
-impl<State1, State2, ..> Cordic<State1, State2, ..>
+impl<Arg, Count> State for NReg<Arg, Count>
 where
-    State1: property1::State,
-    State2: property2::State,
-    ..
+    Arg: types::arg::State,
+    Count: data_count::Property,
 {
-    pub fn freeze<NewState1, NewState2, ..>(
-        self,
-    ) -> Cordic<NewState1, NewState2, ..>
-    where
-        NewState1: property1::State,
-        NewState2: property2::State,
-        ..
-    {
-        self.rb.csr.write(|w| {
-            NewState1::set(w);
-            NewState2::set(w);
-            ..
-
-            w
-        });
-
-        Cordic {
-            rb: self.rb,
-            _state1: PhantomData,
-            _state2: PhantomData,
-            ..
-        }
-    }
-}
-```
-
-Type-state traits should define a function called `set` which
-mutates the appropriate register to configure the resource into
-the state the type-state represents.
-
-`freeze()` only needs to invoke all state `set`s and then construct a new
-abstraction instance with the new type-states to successfully transform
-the passed instance.
-
-This process is highly adaptive, as it is independent of the behavior and
-relationships of the type-states.
-
-## Creating States
-### Data Types
-
-The first type-states we'll implement are the argument and result types:
-
-```rust
-pub mod data_type {
-    pub struct Q31;
-    pub struct Q15;
-}
-```
-
-And let's make a trait for type-states that have a corresponding
-fixed-point type:
-
-```rust
-pub mod data_type {
-    pub trait DataType {
-        type Fixed: Fixed;
-    }
-
-    // pub struct Q31;
-    // pub struct Q15;
-}
-```
-> I'm using the `fixed` crate for fixed-point types and traits.
-> Our associated type `Fixed` requires `fixed::Fixed`.
-
-The implementations are straight forward:
-
-```rust
-pub mod data_type {
-    // pub trait DataType {
-    //     type Fixed: Fixed;
-    // }
-
-    // pub struct Q31;
-    // pub struct Q15
-
-    impl DataType for Q31 {
-        type Fixed = I1F31;
-    }
-
-    impl DataType for Q15 {
-        type Fixed = I1F15;
-    }
-}
-```
-
-Now let's define the trait that represents argument data types:
-
-```rust
-pub mod data_type {
-    pub mod arg {
-        pub trait State {
-            fn set(w: &mut crate::stm32::cordic::csr::W);
-        }
-    }
-}
-```
-
-...and implement it for our data types with a small macro:
-
-```rust
-pub mod arg {
-    // pub trait State {
-    //     fn set(w: &mut crate::stm32::cordic::csr::W);
-    // }
-
-    macro_rules! impls {
-        ( $( ($NAME:ty, $SIZE:ident) $(,)? )+ ) => {
-            $(
-                impl State for $NAME {
-                    fn set(w: &mut crate::stm32::cordic::csr::W) {
-                        w.argsize().$SIZE();
-                    }
+    fn set(w: csr::NARGS_W<csr::CSRrs>) -> Self {
+        w.variant(
+            const {
+                match (Arg::RAW, Count::COUNT) {
+                    // two registers are needed *only* with two arguments and Q31 size.
+                    (types::arg::Raw::Bits32, data_count::Count::Two) => Raw::Num2,
+                    (_, _) => Raw::Num1,
                 }
-            )+
-        };
-    }
+            },
+        );
 
-    impls! {
-        (data_type::Q31, bits32),
-        (data_type::Q15, bits16),
-    }
-}
-```
-
-We do the axact same thing for result data types but in the
-`ressize` bitfield rather than the `argsize` bitfield.
-
-### Precision
-
-We can follow a very similar procedure for precision:
-
-```rust
-pub mod prec {
-    pub(crate) trait State {
-        const BITS: u8;
-
-        fn set(w: &mut crate::stm32::cordic::csr::W);
-    }
-
-    pub struct P4;
-    pub struct P8;
-    ..
-    pub struct P56;
-    pub struct P60;
-
-    macro_rules! impls {
-        ( $( ($NAME:ident, $BITS:expr) $(,)? )+ ) => {
-            $(
-                impl State for $NAME {
-                    const BITS: u8 = $BITS;
-
-                    fn set(w: &mut crate::stm32::cordic::csr::W) {
-                        unsafe { w.precision().bits(<Self as State>::BITS) };
-                    }
-                }
-            )+
-        };
-    }
-
-    impls! {
-        (P4, 1),
-        (P8, 2),
-        ..
-        (P56, 14),
-        (P60, 15),
+        Self {
+            _t: PhantomData,
+            _count: PhantomData,
+        }
     }
 }
 ```
+> The implementation for results is very similar.
 
-In this case, we were able to leverage associated constants to allow
-type-states to specify the value of a bitfield directly.
+The body of `set` *looks* like it has runtime branching, but it actually doesn't.
 
-This operation is {{< special unsafe >}} because not all bitfield values are valid.
+The branching logic is based on associated type constants, so the compiler knows the correct branch
+based on the type. An inline `const` is used to explicitly show that this is the case.
 
-If a foreign type were to implement `State` with `State::BITS` equal to
-`0`, and were set, it would result in an invalid peripheral coonfiguration
-(probably undefined behavior).
+### Scale/Precision/Func
 
-We can curb this eventuality by sealing our `State` traits within the HAL crate
-via `pub(crate)`.
+These type-states are trivial and follow the same design procedure as the previous.
 
-### Function
+## Features
 
-This is where things get... complicated.
+Sometimes, the states of a peripheral are too low-level to be meaningfully used one-by-one, as they
+work together to fascilitate a *feature* of the peripheral.
 
-I decided function type-states will encode not only which function is being evaluated,
-but how many arguments the user wishes to provide (where the second argument will hold
-a default value if omitted).
+In the case of the Cordic, the `NArgs`, `NRes`, `Scale`, and `Func` states are tightly coupled
+and fascilitate conducting numerical operations. Certain functions only support certain scales,
+the number of desired arguments/results of a function determines the number of register interactions.
 
-Another tricky thing about function type-states is that their behavior is *dependent* on other type-states
-(namely the data types).
-
-Suppose we want to start the atan2 function and provide both the $x$ and $y$ arguments.
-
-If the `Q15` data type is selected, then we write the two arguments into the `WDATA` register.
-
-If the `Q31` data type is selected, we write each argument to the `WDATA` register in succession.
-
-The behavior defined by our function type-state *changed* due to *other type-states*.
-
-Allow me to introduce the next property of type-states...
-
-#### Dependence
-
-The behavior of our function type-states depends on the data type-states. To reflect this,
-the function type-state trait should accept two generics:
+To represent these relationships, let's create a **feature** that enforces these relationships:
 
 ```rust
-mod func {
-    pub(crate) trait State<Arg, Res>
+trait Feature {
+    // states
+
+    /// The required argument register writes.
+    type NArgs<Arg>
     where
-        Arg: data_type::arg::State,
-        Res: data_type::res::State,
-    {
-        fn set(w: &mut crate::stm32::cordic::csr::W);
-    }
-}
-```
-
-Wait, but... it *also* depends on the *number* of function arguments/results?
-
-Indeed, however the number of function arguments/results is encoded by the function type itself.
-
-For example, there is a function `Sin`, and a function `SinCos`. Both of these configure the same
-function `sine` in the peripheral, but differing number of results to be read.
-
-We can represent these function properties with two new sub-type-states:
-
-```rust
-pub mod func {
-    pub mod data_count {
-        pub struct One;
-        pub struct Two;
-
-        pub mod arg {
-            pub(crate) trait State {
-                fn set(w: &mut crate::stm32::cordic::csr::W);
-            }
-        }
-
-        pub mod res {
-            pub(crate) trait State {
-                fn set(w: &mut crate::stm32::cordic::csr::W);
-            }
-        }
-    }
-
-    ..
-}
-```
-
-...and implement them:
-
-```rust
-impl State for One {
-    fn set(w: &mut crate::stm32::cordic::csr::W) {
-        w.nargs().num1();
-    }
-}
-
-impl State for Two {
-    fn set(w: &mut crate::stm32::cordic::csr::W) {
-        w.nargs(). // ?
-    }
-}
-```
-> Implementations for results are very similar.
-
-Wait... the behavior of `State::set` for two function arguments is dependent on the
-argument type! For `Two`, if the argument type is `Q15`, only one regiester write is needed, but if
-the argument type is `Q31` then two register writes are needed.
-
-This means these sub-type-states are also dependent on their respective data type-states.
-
-Let's adjust the traits:
-
-```rust
-pub mod func {
-    pub mod data_count {
-        pub mod arg {
-            pub(crate) trait State<Arg>
-            where
-                Arg: data_type::arg::State,
-            {
-                fn set(w: &mut crate::stm32::cordic::csr::W);
-            }
-        }
-
-        pub mod res {
-            pub(crate) trait State<Res>
-            where
-                Res: data_type::res::State,
-            {
-                fn set(w: &mut crate::stm32::cordic::csr::W);
-            }
-        }
-    }
-}
-```
-
-...and implement them:
-
-```rust
-impl<Arg> State<Arg> for One
-where
-    Arg: data_type::arg::State,
-{
-    fn set(w: &mut crate::stm32::cordic::csr::W) {
-        w.nargs().num1();
-    }
-}
-
-impl<Arg> State<Arg> for Two
-where
-    Arg: data_type::arg::State,
-{
-    fn set(w: &mut crate::stm32::cordic::csr::W) {
-        w.nargs(). // Arg::Something?
-    }
-}
-```
-
-Well we hit another roadblock, how can we derive behavior from the generic type-sates?
-
-Well, this is what associated constants are for! Just like for precision, argument and result
-types will define their bitfield value as a `BITS` constant:
-
-```rust
-pub mod data_type {
-    pub mod arg {
-        pub(crate) trait State {
-            const BITS: bool;
-
-            fn set(w: &mut crate::stm32::cordic::csr::W);
-        }
-    }
-
-    pub mod res {
-        pub(crate) trait State {
-            const BITS: bool;
-
-            fn set(w: &mut crate::stm32::cordic::csr::W);
-        }
-    }
-}
-```
-
-...and now:
-
-```rust
-impl<Arg> State<Arg> for One
-where
-    Arg: data_type::arg::State,
-{
-    fn set(w: &mut crate::stm32::cordic::csr::W) {
-        w.nargs().num1();
-    }
-}
-
-impl<Arg> State<Arg> for Two
-where
-    Arg: data_type::arg::State,
-{
-    fn set(w: &mut crate::stm32::cordic::csr::W) {
-        w.nargs().bit(!Arg::BITS);
-    }
-}
-```
-> This looks the same for results but on the `nres` bitfield.
-
-Now we can write out our function trait with the type-state dependencies and sub-type-states:
-
-```rust
-pub mod func {
-    pub(crate) trait State<Arg, Res>
+        Arg: types::arg::State + types::sealed::Tag;
+    /// The required result register reads.
+    type NRes<Res>
     where
-        Arg: data_type::arg::State,
-        Res: data_type::res::State,
-    {
-        type NArgs: data_count::arg::State<Arg>;
-        type NRes: data_count::res::State<Res>;
+        Res: types::res::State + types::sealed::Tag;
+    /// The scale to be applied.
+    type Scale;
+    /// The function to evaluate.
+    type Func;
 
-        fn set(w: &mut crate::stm32::cordic::csr::W);
-    }
+    // properties
+
+    /// The number of arguments required.
+    type ArgCount;
+    /// The number of results produced.
+    type ResCount;
 }
 ```
 
-Let's define our function type-states:
+This feature holds **states** and **properties**.
+
+To understand what exactly this feature means, here's an example:
+
+- Name: SinCos
+- Argument: angle
+- Results: sin(angle) and cos(angle)
+- Data Size: q1.31
+
+The register configuration that would support this is:
+
+- NArgs: 1
+- NRes: 2
+- Scale: 0
+- Func: Sine
+> Scale value given by $RM0440 17.3.2.
+
+So, a type `SinCos` can be made to represent this operation, and can implement
+`Feature` like so:
 
 ```rust
-pub mod func {
-    pub struct Cos;
-    pub struct Sin;
-    pub struct SinCos;
-    pub struct CosM;
-    pub struct SinM;
-    pub struct SinCosM;
-    pub struct ATan2;
-    pub struct Magnitude;
-    pub struct ATan2Magnitude;
-    pub struct ATan; // ?
-    pub struct CosH;
-    pub struct SinH;
-    pub struct SinHCosH;
-    pub struct ATanH;
-    pub struct Ln; // ?
-    pub struct Sqrt; // ?
+impl Feature for SinCos {
+    type NArgs<Arg> = NReg<Arg, Self::ArgCount>
+    where
+        Arg: types::arg::State + types::sealed::Tag;
+    type NRes<Res> = NReg<Arg, Self::ResCount>
+    where
+        Res: types::res::State + types::sealed::Tag;
+    type Scale = N0;
+    type Func = Sin;
+
+    type ArgCount = One;
+    type ResCount = Two;
 }
 ```
+> This implementation covers all permutations of argument and result data type.
 
-Each of these type-states represents not only each function, but the permutations of each function
-and possible number of arguments and results.
+Unlike the `Sin` function, some functions have multiple valid scales.
 
-What's up with the `?`s, though?
+For example, `Sqrt`:
 
-Well, these functions have variable scale factors that can be configured. (Remember [SCALE](#scale))
+![](https://cdn.adinack.dev/better-hals-first-look/sqrt-params.png)
+> $RM0440 17.3.2
 
-![](https://cdn.adinack.dev/better-hals-first-look/arctangent-params.png)
-
-Rather than defining each scale factor concretely:
-
-```rust
-pub struct ATanScale0;
-pub struct ATanScale1;
-pub struct ATanScale2;
-..
-```
-
-We can add a generic constraint:
+As such, this feature type has a generic `Scale`. It will only be implemented for
+**valid** scales, of course:
 
 ```rust
-pub struct ATan<Scale: scale::State> {
+/// Square root of x.
+///
+/// This function can be scaled by 0-2.
+pub struct Sqrt<Scale: scale::State> {
     _scale: PhantomData<Scale>,
 }
 ```
-> I'm skipping the process of creating the `scale` type-states, we've seen that many times already.
 
-Now let's try implementing the function trait:
-
-```rust
-impl<Arg, Res, Scale> State<Arg, Res> for Atan<Scale>
-where
-    Arg: data_type::arg::State,
-    Res: data_type::res::State,
-    Scale: scale::State,
-{
-    type NArgs = data_count::One;
-    type NRes = data_count::One;
-
-    fn set(w: &mut crate::stm32::cordic::csr::W) {
-        // set our sub-type-states' configuration
-        <Self::NArgs as data_count::arg::State<Arg>>::set(w);
-        <Self::NRes as data_count::res::State<Res>>::set(w);
-
-        // set our own configuration
-        <Scale as scale::State>::set(w);
-        w.func().arctangent();
-    }
-}
-```
-
-Unfortunately, it is not so simple for the other scalable functions.
-
-We were lucky that `ATan` works across the entire range of scale values,
-but `Ln` and `Sqrt` do not.
-
-This means for those functions, we cannot write a generic impl across all
-scales. We need to concretely impl them for only valid scales.
-
-Here are the signatures for the two declarative macros that accomplish this:
+The implementations are fascilitated by some macros which are invoked like so:
 
 ```rust
 impls! {
-    (Cos<N0>, cosine, One, One, start(angle)),
-    (Sin<N0>, sine, One, One, start(angle)),
-    (SinCos<N0>, sine, One, Two, start(angle)),
-    (CosM<N0>, cosine, Two, One, start(angle, modulus)),
-    (SinM<N0>, sine, Two, One, start(angle, modulus)),
-    (SinCosM<N0>, sine, Two, Two, start(angle, modulus)),
-    (ATan2<N0>, phase, Two, One, start(x, y)),
-    (Magnitude<N0>, modulus, Two, One, start(x, y)),
-    (ATan2Magnitude<N0>, phase, Two, Two, start(x, y)),
-    (CosH<N1>, hyperbolic_cosine, One, One, start(x)),
-    (SinH<N1>, hyperbolic_sine, One, One, start(x)),
-    (SinHCosH<N1>, hyperbolic_cosine, One, Two, start(x)),
-    (ATanH<N1>, arctanh, One, One, start(x)),
+    (Cos<N0>, One, One, Cos),
+    (Sin<N0>, One, One, Sin),
+    (SinCos<N0>, One, Two, Sin),
+    (CosM<N0>, Two, One, Cos),
+    (SinM<N0>, Two, One, Sin),
+    (SinCosM<N0>, Two, Two, Sin),
+    (ATan2<N0>, Two, One, ATan2),
+    (Magnitude<N0>, Two, One, Magnitude),
+    (ATan2Magnitude<N0>, Two, Two, ATan2),
+    (CosH<N1>, One, One, CosH),
+    (SinH<N1>, One, One, SinH),
+    (SinHCosH<N1>, One, Two, SinH),
+    (ATanH<N1>, One, One, ATan),
 }
 
 impls_multi_scale! {
-    (ATan<N0, N1, N2, N3, N4, N5, N6, N7>, arctangent, One, One, start(x)),
-    (Ln<N1, N2, N3, N4>, natural_logarithm, One, One, start(x)),
-    (Sqrt<N0, N1, N2>, square_root, One, One, start(x)),
+    (ATan<N0, N1, N2, N3, N4, N5, N6, N7>, One, One, ATan),
+    (Ln<N1, N2, N3, N4>, One, One, Ln),
+    (Sqrt<N0, N1, N2>, One, One, Sqrt),
 }
 ```
-> These macros are rather large, and the details of their operation are not important.
 
-#### Compile-time Validation
-
-Now, if one were to try and set `Sqrt` with a scale of `N3`, the following error
-message would appear:
-
-```txt
-error[E0277]: the trait bound `Sqrt<N3>: func::State<Qxx, Qxx>` is not satisfied
-   --> src/main.rs
-    |
-    |         let mut cordic = ctx.device.CORDIC.constrain(&mut rcc).freeze();
-    |                                                                ^^^^^^ the trait `func::State<Qxx, Qxx>` is not implemented for `Sqrt<N3>`
-    |
-    = help: the following other types implement trait `func::State<Arg, Res>`:
-              Sqrt<N0>
-              Sqrt<N1>
-              Sqrt<N2>
-```
-> Slightly modified to demonstrate generalized behavior.
-
-The moment we try to apply an invalid configuration to the peripheral with `freeze()` the compiler stops us!
-
-Moreover, it happily suggests some alternative *valid* configurations.
-
-We have coerced the compiler into recognizing and enforcing *hardware invariances*.
-
-**\>\>\> [All HALs should do this] \<\<\<**
+Which implements `Feature` for the feature types with valid scales.
 
 ---
 
-The next function the impl macros perform is implementing the `start(..)` and `result()` methods.
+At this point, we have enough to begin creating our Cordic abstraction type.
 
-Every permutation of function, argument, result, narg, and nres type-states influence the
-signature and behavior of these methods.
-
-For example, `Atan` with `Q15` arguments and results:
+First, let's define a configuration. This type should hold **all** type-states:
 
 ```rust
-pub fn start(
-    &mut self,
-    x: <data_type::Q15 as data_type::DataType>::Fixed,
-    y: <data_type::Q15 as data_type::DataType>::Fixed
-) {
-    // $RM0440 17.4.2
-    let reg = (x.to_bits() as u16 as u32) | ((y.to_bits() as u16 as u32) << 16);
-
-    self.rb.wdata.write(|w| w.arg().bits(reg));
+/// Configuration for the Cordic.
+struct Config<Arg, Res, NArgs, NRes, Scale, Prec, Func> {
+    arg: Arg,
+    res: Res,
+    nargs: NArgs,
+    nres: NRes,
+    scale: Scale,
+    prec: Prec,
+    func: Func,
 }
+```
+> It is important that the configuration **owns** the type-states, because that
+means all instances of `Config` must be valid, as type-state instances can only
+be created by calling their `set` method.
 
-pub fn result(&mut self) -> <data_type::Q15 as data_type::DataType>::Fixed {
-    <data_type::Q15 as data_type::DataType>::Fixed::from_bits(
-        self.rb.rdata.read().res().bits() as _,
-    )
+And our abstraction type:
+
+```rust
+/// Cordic co-processor interface.
+pub struct Cordic<Arg, Res, Prec, Op>
+where
+    Arg: types::arg::State,
+    Res: types::res::State,
+    Prec: prec::State,
+    Op: op::Feature,
+{
+    rb: CORDIC,
+    config: Config<Arg, Res, Op::NArgs<Arg>, Op::NRes<Res>, Op::Scale, Prec, Op::Func>,
 }
 ```
 
-`SinCos` with `Q31` arguments and results:
+The `Cordic` type has less generic constraints than the `Config` type because the
+`Op` feature encodes multiple states.
+
+It is still **guaranteed** that all type-states are accounted for because the config
+is present, and per its definition, all type-states are present.
+
+This definition also makes it clear that the `NArgs` and `NRes` type-states
+are dependent on the `Arg` and `Res` type-states respectively via the passed
+generic constraints.
+
+## Creation
+
+It's time to set up construction of our abstraction.
+
+Firstly, let's define the reset state of the Cordic.
+
+This is a ubiquitous idea across HALs and peripherals, so we should represent
+it as a trait in `proto-hal`:
 
 ```rust
-pub fn start(&mut self, angle: <data_type::Q31 as data_type::DataType>::Fixed) {
-    self.rb
-        .wdata
-        .write(|w| w.arg().bits(angle.to_bits() as _));
-}
-
-pub fn result(
-    &mut self,
-) -> (
-    <data_type::Q31 as data_type::DataType>::Fixed,
-    <data_type::Q31 as data_type::DataType>::Fixed,
-) {
-    (
-        <data_type::Q31 as data_type::DataType>::Fixed::from_bits(self.rb.rdata.read().res().bits() as _),
-        <data_type::Q31 as data_type::DataType>::Fixed::from_bits(self.rb.rdata.read().res().bits() as _),
-    )
-}
-```
-
-Not only do the signatures completely change, but the operations involved are completely different as well.
-
-To generate the proper functions, the impl macros split implementations into four groups:
-
-1. start: one arg
-1. start: two args
-1. result: one res
-1. result: two res
-
-Each group will implement for both `Q31` and `Q15` for a total of eight implementation branches.
-
-The macros have multiple token patterns so they can be dispatched recursively:
-
-```rust
-macro_rules! impls {
-    // root / config
-    ( $( ($NAME:ident < $SCALE:ident >, $FUNC:ident, $NARGS:ident, $NRES:ident, start( $($START_PARAM:ident),+ )) $(,)?)+ ) => {
-        $(
-            impl<Arg, Res> State<Arg, Res> for $NAME
-            where
-                Arg: data_type::arg::State,
-                Res: data_type::res::State,
-            {
-                type NArgs = data_count::$NARGS;
-                type NRes = data_count::$NRES;
-
-                fn set(w: &mut crate::stm32::cordic::csr::W) {
-                    <Self::NArgs as data_count::arg::State<Arg>>::set(w);
-                    <Self::NRes as data_count::res::State<Res>>::set(w);
-                    <scale::$SCALE as scale::State>::set(w);
-                    w.func().$FUNC();
-                }
-            }
-
-            impls!($NAME, $NARGS, start( $($START_PARAM),+ ));
-            impls!($NAME, $NRES);
-        )+
-    };
-
-    // impl start for one arg
-    ($NAME:ty, One, start( $PRIMARY:ident )) => { .. };
-
-    // impl start for two args
-    ($NAME:ty, Two, start( $PRIMARY:ident, $SECONDARY:ident )) => { .. };
-
-    // impl result for one result
-    ($NAME:ty, One) => { .. };
-
-    // impl result for two results
-    ($NAME:ty, Two) => { .. };
-}
-```
-> `impls_multi_scale` is very similar to `impls`.
-
-## Common Interfaces
-
-And that does it for type-states! Now we can implement some general functionality.
-
-I wanted to use `proto-hal` to define HAL related traits or structures that all resource
-abstractions should implement where applicable.
-
-Let's implement some of them for CORDIC.
-
-### Reset
-
-The first `proto-hal` trait:
-
-```rust
+/// Types that encapsulate a resource that can be configured to be
+/// in a "reset" state implement this trait.
 pub trait IntoReset {
+    /// The form of the implementor type in the "reset" state.
     type Reset;
 
+    /// Transform the implementor type into the "reset" state.
     fn into_reset(self) -> Self::Reset;
 }
 ```
 
-...let's implement it :
+...and implement it:
 
 ```rust
 /// $RM0440 17.4.1
-pub type CordicReset = Cordic<data_type::Q31, data_type::Q31, func::Cos, prec::P20>;
+pub type CordicReset = Cordic<types::Q31, types::Q31, prec::P20, op::Cos>;
 
-impl<Arg, Res, Func, Prec> proto::IntoReset for Cordic<Arg, Res, Func, Prec>
+impl<Arg, Res, Prec, Op> proto::IntoReset for Cordic<Arg, Res, Prec, Op>
 where
-    Arg: data_type::arg::State,
-    Res: data_type::res::State,
-    Func: func::State<Arg, Res>,
+    Arg: types::arg::State,
+    Res: types::res::State,
     Prec: prec::State,
+    Op: op::sealed::Feature,
 {
     type Reset = CordicReset;
 
@@ -1027,175 +668,596 @@ where
 }
 ```
 
-Easy enough!
+And now, we can create an extension trait for the Cordic peripheral that allows
+it to be **constrained** by the abstraction type:
 
-### Listen
-
-Unfortunately, this concept cannot be a trait becuase the signature of the associated
-methods are application dependent.
-
-The general idea is that `listen()` can be called to enable interrupts for a peripheral.
-
-We can implement it concretely:
+> The idea behind constraining is that our abstraction operates within
+> a state-space of our creation, effectively *constraining* the state
+> of the peripheral to reside within that state-space.
 
 ```rust
-impl<Arg, Res, Func, Prec> Cordic<Arg, Res, Func, Prec>
+/// Extension trait for constraining the Cordic peripheral.
+pub trait Ext {
+    /// Constrain the Cordic peripheral.
+    fn constrain(self, rcc: &mut Rcc) -> CordicReset;
+}
+```
+
+...and implement it:
+
+```rust
+impl Ext for CORDIC {
+    fn constrain(self, rcc: &mut Rcc) -> CordicReset {
+        rcc.rb.ahb1enr().modify(|_, w| {
+            w.cordicen().set_bit();
+        });
+
+        // SAFETY: we assume the resource is already
+        // in a reset state
+        // BONUS: this line enforces that the
+        // abstraction is of zero-size
+        unsafe { core::mem::transmute(()) }
+    }
+}
+```
+> The `transmute` has the wonderful side effect of compile-time validating that the
+> abstraction is a ZST[^2] as we intend it to be.
+
+## Conversion
+
+Now that the peripheral is constrained by the abstraction, we need a way to
+*freeze* the peripheral in desired states. This is how the peripheral is configured.
+
+Let's write a `freeze` method:
+
+```rust
+/// Configure the resource as dictated by the resulting
+/// type-states. The produced binding represents
+/// a frozen configuration, since it is represented
+/// by types. A new binding will need to be made --
+/// and the old binding invalidated -- in order to change
+/// the configuration.
+///
+/// *Note: The configuration is inferred from context because
+/// it is represented by generic type-states.*
+pub fn freeze<NewArg, NewRes, NewPrec, NewOp>(self) -> Cordic<NewArg, NewRes, NewPrec, NewOp>
 where
-    Arg: data_type::arg::State,
-    Res: data_type::res::State,
-    Func: func::State<Arg, Res>,
-    Prec: prec::State,
+    NewArg: types::arg::State,
+    NewRes: types::res::State,
+    NewPrec: prec::State,
+    NewOp: op::Feature,
+    NewOp::NArgs<NewArg>: reg_count::arg::State,
+    NewOp::NRes<NewRes>: reg_count::res::State,
+    NewOp::Scale: scale::State,
+    NewOp::Func: func::State,
 {
-    pub fn listen(&mut self) {
-        self.rb.csr.modify(|_, w| w.ien().set_bit());
+    use func::State as _;
+    use reg_count::arg::State as _;
+    use reg_count::res::State as _;
+    use scale::State as _;
+
+    let config = self.rb.csr().modify(|_, w| Config {
+        arg: NewArg::set(w.argsize()),
+        res: NewRes::set(w.ressize()),
+        nargs: NewOp::NArgs::set(w.nargs()),
+        nres: NewOp::NRes::set(w.nres()),
+        scale: NewOp::Scale::set(w.scale()),
+        prec: NewPrec::set(w.precision()),
+        func: NewOp::Func::set(w.func()),
+    });
+
+    Cordic {
+        rb: self.rb,
+        config,
+    }
+}
+```
+> `RegisterBlock::write()` is seen returning values here. This is not possible given the original
+> implementation in `svd2rust`. I had to fork `svd2rust`, change the interface, and rebuild
+> the PAC with the new interface.
+
+This method is extremely robust. Removing any line will cause it to no longer be valid, and it will
+not compile. If the type-states were not required to be owned by `Config`, there would be nothing
+forcing `set` to be called on every type-state.
+
+## Operation
+
+Now let's set up actually running operations and getting results. We'll start by creating an
+`Operation` type:
+
+```rust
+/// An operation of the Cordic.
+///
+/// Enables writing and reading values
+/// to and from the Cordic.
+struct Operation<'a, Arg, Res, Op>
+where
+    Arg: types::arg::State,
+    Res: types::res::State,
+    Op: sealed::Feature,
+{
+    nargs: &'a Op::NArgs<Arg>,
+    nres: &'a Op::NRes<Res>,
+    scale: &'a Op::Scale,
+    func: &'a Op::Func,
+}
+```
+
+This type ensures the appropriate type-states are set for an operation by *borrowing* them.
+
+Let's implement `write` and `read` methods.
+
+```rust
+impl<'a, Arg, Res, Op> Operation<'a, Arg, Res, Op>
+where
+    Arg: types::arg::State,
+    Res: types::res::State,
+    Op: sealed::Feature,
+{
+    /// Write arguments to the argument register.
+    fn write<Args>(&mut self, args: Args, reg: &crate::stm32::cordic::WDATA)
+    where
+        Arg: types::sealed::Tag,
+        Args: ?,
+        Op::ArgCount: data_count::Property<Arg>,
+    {
+        ?
     }
 
-    pub fn unlisten(&mut self) {
-        self.rb.csr.modify(|_, w| w.ien().clear_bit());
+    /// Read results from the result register.
+    fn read(
+        &mut self,
+        reg: &crate::stm32::cordic::RDATA,
+    ) -> ?
+    where
+        Op::ResCount: data_count::Property<Res>,
+    {
+        ?
     }
 }
 ```
 
-More complex peripherals may require an `Events` enum to be passed to specify
-*which* events to listen for, or may require other resource bindings to fascilitate
-the interrupt enable.
+Well we've run into an issue. The argument and return types are dependent on the
+operation. So how can we correctly design the function signature to accept and return
+those types?
 
-### Release
-
-It is conceivable that we may want to, at times, *unconstrain* the resource back to its
-raw form. This could be useful for recombining split[^3] resources to reconfigure the
-umbrella resource to be resplit.
+Well, there can be either one or two arguments/results, we already created the `data_count`
+properties to reflect that. Let's make an extension trait for types which can be arguments or results:
 
 ```rust
-impl<Arg, Res, Func, Prec> Cordic<Arg, Res, Func, Prec>
-where
-    Arg: data_type::arg::State,
-    Res: data_type::res::State,
-    Func: func::State<Arg, Res>,
-    Prec: prec::State,
-{
-    pub unsafe fn release(self) -> CORDIC {
-        self.rb
-    }
+mod signature {
+    /// The signature is a property of the operation type-state.
+    pub trait Property<T>
+    where
+        T: types::Ext, // arguments/results should be I1F15/I1F31
+    {
+        /// Write arguments to the argument register.
+        ///
+        /// # Safety:
+        /// Cordic must be configured to expect the
+        /// correct number of register writes.
+        unsafe fn write(self, reg: &WData)
+        where
+            T::Tag: types::arg::State;
 
-    pub fn release_and_reset(self, rcc: &mut Rcc) -> CORDIC {
-        use proto::IntoReset as _;
-
-        let reset = self.into_reset();
-
-        rcc.rb.ahb1enr.modify(|_, w| w.cordicen().clear_bit());
-
-        unsafe { reset.release() }
+        /// Read results from the result register.
+        ///
+        /// # Safety:
+        /// Cordic must be configured to expect the
+        /// correct number of register reades.
+        unsafe fn read(reg: &RData) -> Self
+        where
+            T::Tag: types::res::State;
     }
 }
 ```
 
-The simplest operation (just extracting the resource and throwing away the abstraction)
-is {{< special unsafe >}} because an assumption we made earlier was that any unwrapped resource shall
-be in a reset state. Additionally, since this is hardware we are dealing with, it could
-continue operating and interacting with other resources even though it is no longer
-represented in our program.
+> These functions are {{< special unsafe >}} because their signatures do not
+support type-state validation.
 
-The second method permits the safe reset and release of the resource.
-
-Due to the variable method signatures, this concept can also not be enforced by a trait.
-
-## Usage
-
-Let's see all our hard work in action!
+...and implement it for a single value or tuple of two:
 
 ```rust
-#[rtic::app(device = hal::stm32, peripherals = true)]
-mod app {
-    type TestCordic = cordic::Cordic<
-        cordic::data_type::Q15,
-        cordic::data_type::Q31,
-        cordic::func::SinCos,
-        cordic::prec::P60,
-    >;
+impl<T> Property<T> for T
+where
+    T: types::Ext,
+{
+    unsafe fn write(self, reg: &WData)
+    where
+        T::Tag: types::arg::State,
+    {
+        let data = match const { T::Tag::RAW } {
+            types::arg::Raw::Bits16 => {
+                // $RM0440 17.4.2
+                // since we are only using the lower half of the register,
+                // the Cordic **will** read the upper half if the function
+                // accepts two arguments, so we fill it with +1 as per the
+                // stated default.
+                self.to_register() | (0x7fff << 16)
+            }
+            types::arg::Raw::Bits32 => self.to_register(),
+        };
 
-    #[shared]
-    struct Shared {
-        cordic: TestCordic,
+        // SAFETY: all bits are valid
+        reg.write(|w| unsafe {
+            w.arg().bits(data);
+        });
     }
 
-    #[local]
-    struct Local {}
+    unsafe fn read(reg: &RData) -> Self
+    where
+        T::Tag: types::res::State,
+    {
+        T::from_register(reg.read().res().bits())
+    }
+}
 
-    #[init]
-    fn init(ctx: init::Context) -> (Shared, Local) {
-        // config clocks, monotonic, etc...
+impl<T> Property<T> for (T, T)
+where
+    T: types::Ext,
+{
+    unsafe fn write(self, reg: &WData)
+    where
+        T::Tag: types::arg::State,
+    {
+        let (primary, secondary) = self;
 
-        let mut cordic = ctx.device.CORDIC.constrain(&mut rcc).freeze();
-        cordic.listen();
-
-        fmt::unwrap!(push_cordic::spawn());
-
-        (Shared { cordic }, Local {})
+        match const { T::Tag::RAW } {
+            types::arg::Raw::Bits16 => {
+                // $RM0440 17.4.2
+                // SAFETY: all bits are valid
+                reg.write(|w| unsafe {
+                    w.arg()
+                        .bits(primary.to_register() | (secondary.to_register() << 16));
+                });
+            }
+            types::arg::Raw::Bits32 => {
+                // SAFETY: all bits are valid
+                reg.write(|w| unsafe {
+                    w.arg().bits(primary.to_register());
+                });
+                // SAFETY: all bits are valid
+                reg.write(|w| unsafe {
+                    w.arg().bits(secondary.to_register());
+                });
+            }
+        };
     }
 
-    #[task(shared = [cordic])]
-    async fn push_cordic(mut ctx: push_cordic::Context) {
-        let mut angle = I1F15::MIN;
+    unsafe fn read(reg: &RData) -> Self
+    where
+        T::Tag: types::res::State,
+    {
+        match const { T::Tag::RAW } {
+            types::res::Raw::Bits16 => {
+                let data = reg.read().res().bits();
 
-        loop {
-            fmt::info!("angle: {}rad", angle.to_num::<f32>() * 3.14);
+                // $RM0440 17.4.3
+                (
+                    T::from_register(data & 0xffff),
+                    T::from_register(data >> 16),
+                )
+            }
+            types::res::Raw::Bits32 => (
+                T::from_register(reg.read().res().bits()),
+                T::from_register(reg.read().res().bits()),
+            ),
+        }
+    }
+}
+```
+> `to_register` and `from_register` were added to the `types::Ext` trait for usage here.
 
-            ctx.shared.cordic.lock(|cordic| cordic.start(angle));
+Now the behavior for reading and writing arguments of different types and counts is defined.
 
-            angle = angle.wrapping_add(I1F15::from_bits(0x100));
+Back to the `Operation` type, we can fill in the missing sections:
 
-            Mono::delay(1u64.secs()).await;
+```rust
+impl<'a, Arg, Res, Op> Operation<'a, Arg, Res, Op>
+where
+    Arg: types::arg::State,
+    Res: types::res::State,
+    Op: Feature,
+{
+    /// Write arguments to the argument register.
+    fn write<Args>(&mut self, args: Args, reg: &crate::stm32::cordic::WDATA)
+    where
+        Arg: types::Tag,
+        Args: signature::Property<Arg::Repr>,
+        Op::ArgCount: data_count::Property<Arg, Signature = Args>,
+    {
+        // SAFETY: Cordic is necessarily configured properly if
+        // an instance of `Operation` exists.
+        unsafe {
+            signature::Property::<Arg::Repr>::write(args, reg);
         }
     }
 
-    #[task(binds = CORDIC, shared = [cordic])]
-    fn cordic_result(mut ctx: cordic_result::Context) {
-        let (sin, cos) = ctx.shared.cordic.lock(|cordic| cordic.result());
-
-        fmt::info!("sin: {}, cos: {}", sin.to_num::<f32>(), cos.to_num::<f32>());
+    /// Read results from the result register.
+    fn read(
+        &mut self,
+        reg: &crate::stm32::cordic::RDATA,
+    ) -> <Op::ResCount as data_count::Property<Res>>::Signature
+    where
+        Op::ResCount: data_count::Property<Res>,
+    {
+        // SAFETY: Cordic is necessarily configured properly if
+        // an instance of `Operation` exists.
+        unsafe { signature::Property::<Res::Repr>::read(reg) }
     }
 }
 ```
+> Once again, any error in the body of these methods results
+> in compile-time errors.
 
-Here is a small RTIC application to test out our interface.
+Now we can implement `start` and `result` methods for `Cordic`
+to allow users to run computations:
 
-It simply initializes the CORDIC configured in `SinCos` mode and listens for events.
+```rust
+/// Start the configured operation.
+pub fn start(&mut self, args: <Op::ArgCount as data_count::Property<Arg>>::Signature)
+where
+    Op::ArgCount: data_count::Property<Arg>,
+{
+    let config = &self.config;
+    let mut op = Operation::<Arg, Res, Op> {
+        nargs: &config.nargs,
+        nres: &config.nres,
+        scale: &config.scale,
+        func: &config.func,
+    };
 
-It spawns a software task that writes angles to the CORDIC in a loop.
+    op.write(args, self.rb.wdata());
+}
 
-It also defines a hardware task bound to the `CORDIC` interrupt vector and reads the results.
+/// Get the result of an operation.
+pub fn result(&mut self) -> <Op::ResCount as data_count::Property<Res>>::Signature
+where
+    Op::ResCount: data_count::Property<Res>,
+{
+    let config = &self.config;
+    let mut op = Operation::<Arg, Res, Op> {
+        nargs: &config.nargs,
+        nres: &config.nres,
+        scale: &config.scale,
+        func: &config.func,
+    };
 
-Some output:
-
-```txt
-INFO  angle: -3.14rad
-└─ cordic_test::app::push_cordic::{async_fn#0}
-INFO  sin: -5.9604645e-7, cos: -0.9999695
-└─ cordic_test::app::cordic_result
-INFO  angle: -3.1154687rad
-└─ cordic_test::app::push_cordic::{async_fn#0}
-INFO  sin: -0.024540424, cos: -0.99966824
-└─ cordic_test::app::cordic_result
-INFO  angle: -3.0909376rad
-└─ cordic_test::app::push_cordic::{async_fn#0}
-INFO  sin: -0.049066067, cos: -0.99876475
-└─ cordic_test::app::cordic_result @ src/fmt.rs:131
+    op.read(self.rb.rdata())
+}
 ```
 
-Look at that! Works great :)
+## Dynamic Operation
+
+What if the user doesn't want to compute a static operation?
+
+As it is now, the operation performed is fixed, as it is tracked as a type-state of the peripheral.
+
+It is conceivable, however, that one may want to quickly change between multiple operations on the fly.
+
+It would be quite unergonomic to have to re-freeze the peripheral into a new binding every time,
+so let's add a new operation feature implementation: `Any`:
+
+```rust
+/// Any operation can be invoked with this type-state.
+pub struct Any;
+
+impl Feature for Any {
+    type NArgs<Arg> = ()
+    where
+        Arg: types::arg::State + types::sealed::Tag;
+    type NRes<Res> = ()
+    where
+        Res: types::res::State + types::sealed::Tag;
+    type Scale = ();
+    type Func = ();
+
+    type ArgCount = ();
+    type ResCount = ();
+}
+```
+
+Since `Any`'s implementation of `Feature` assigns the unit type to everything, a `Cordic` with
+an `Any` as the `Op` generic will *not* satisfy the constraints required for `start` and `result`.
+
+This is *good* as those methods no longer contextually make sense for a `Cordic` with am
+unspecified operation.
+
+So we need to implement a new way to conduct operations with the Cordic dynamically.
+
+Let's make a new trait for this dynamic mode:
+
+```rust
+/// A Cordic in dynamic mode.
+pub trait Mode<Arg, Res>
+where
+    Arg: types::arg::State,
+    Res: types::res::State,
+{
+    /// Run an operation with provided arguments and get the result.
+    ///
+    /// *Note: This employs the polling strategy.
+    /// For less overhead, use static operations.*
+    fn run<Op>(
+        &mut self,
+        args: <Op::ArgCount as data_count::Property<Arg>>::Signature,
+    ) -> <Op::ResCount as data_count::Property<Res>>::Signature
+    where
+        Op: Feature,
+        Op::NArgs<Arg>: reg_count::arg::State,
+        Op::NRes<Res>: reg_count::res::State,
+        Op::Scale: scale::State,
+        Op::Func: func::State,
+        Op::ArgCount: data_count::Property<Arg>,
+        Op::ResCount: data_count::Property<Res>;
+}
+```
+
+Now, the `Op` generic is passed in the `run` signature, rather than the `Cordic`
+signature. So it can change over time.
+
+The implementation is effectively the merge of `start` and `result`:
+
+```rust
+impl<Arg, Res, Prec> Mode<Arg, Res> for Cordic<Arg, Res, Prec, Any>
+where
+    Arg: types::arg::State,
+    Res: types::res::State,
+    Prec: prec::State,
+{
+    fn run<Op>(
+        &mut self,
+        args: <Op::ArgCount as data_count::Property<Arg>>::Signature,
+    ) -> <Op::ResCount as data_count::Property<Res>>::Signature
+    where
+        Op: Feature,
+        Op::NArgs<Arg>: reg_count::arg::State,
+        Op::NRes<Res>: reg_count::res::State,
+        Op::Scale: scale::State,
+        Op::Func: func::State,
+        Op::ArgCount: data_count::Property<Arg>,
+        Op::ResCount: data_count::Property<Res>,
+    {
+        use func::State as _;
+        use reg_count::{arg::State as _, res::State as _};
+        use scale::State as _;
+
+        let (nargs, nres, scale, func) = self.rb.csr().modify(|_, w| {
+            (
+                Op::NArgs::set(w.nargs()),
+                Op::NRes::set(w.nres()),
+                Op::Scale::set(w.scale()),
+                Op::Func::set(w.func()),
+            )
+        });
+
+        let mut op = Operation::<Arg, Res, Op> {
+            nargs: &nargs,
+            nres: &nres,
+            scale: &scale,
+            func: &func,
+        };
+
+        op.write(args, self.rb.wdata());
+        self.when_ready(|cordic| op.read(cordic.rb.rdata()))
+    }
+}
+```
+> `Cordic::when_ready` is provided as a convenience. It polls the peripheral
+> checking for the `RRDY` flag and calls the passed closure once the flag is set.
+
+Now, `Cordic<_, _, _, Any>` types can call `run`!
+
+Let's add a conversion method:
+
+```rust
+/// Convert into a Cordic interface that supports
+/// runtime function selection.
+pub fn into_dynamic(self) -> Cordic<Arg, Res, Prec, op::dynamic::Any> {
+    Cordic {
+        rb: self.rb,
+        config: Config {
+            arg: self.config.arg,
+            res: self.config.res,
+            nargs: (),
+            nres: (),
+            scale: (),
+            prec: self.config.prec,
+            func: (),
+        },
+    }
+}
+```
+> Naturally, we can see exactly which type-states are no longer
+> tracked when operating dynamically.
+
+We don't need to re-implement `freeze` for dynamic `Cordic`s because
+there are no generic constraints for the members of `Feature` for the
+`freeze` impl block, neat!
+
+## Usage
+
+Let's see all our hard work in action, here is a minimal example:
+
+```rust
+fn main() -> ! {
+    let dp = stm32::Peripherals::take().expect("cannot take peripherals");
+    let pwr = dp.PWR.constrain().freeze();
+    let mut rcc = dp.RCC.freeze(Config::hsi(), pwr);
+
+    let mut cordic = dp
+        .CORDIC
+        .constrain(&mut rcc)
+        .freeze::<Q15, Q31, P60, SinCos>(); // 16 bit arguments, 32 bit results, compute sine and cosine, 60 iterations
+
+    // static operation
+
+    cordic.start(I1F15::from_num(-0.25 /* -45 degreees */));
+
+    let (sin, cos) = cordic.result();
+
+    println!("sin: {}, cos: {}", sin.to_num::<f32>(), cos.to_num::<f32>());
+
+    // dynamic operation
+
+    let mut cordic = cordic.into_dynamic();
+
+    let sqrt = cordic.run::<Sqrt<N0>>(I1F15::from_num(0.25));
+    println!("sqrt: {}", sqrt.to_num::<f32>());
+    let magnitude = cordic.run::<Magnitude>((I1F15::from_num(0.25), I1F15::from_num(0.5)));
+    println!("magnitude: {}", magnitude.to_num::<f32>());
+
+    loop {}
+}
+```
+
+This outputs:
+
+```txt
+<lvl> sin: -0.70708525, cos: 0.70708954
+└─ cordic::__cortex_m_rt_main @ examples/cordic.rs:45
+<lvl> sqrt: 0.49999928
+└─ cordic::__cortex_m_rt_main @ examples/cordic.rs:52
+<lvl> magnitude: 0.55902183
+└─ cordic::__cortex_m_rt_main @ examples/cordic.rs:54
+```
+
+## Validation
+
+So... what if I tried to use `Sqrt` with a scale of `N3`?
+
+```txt
+error[E0277]: the trait bound `Sqrt<N3>: op::sealed::Feature` is not satisfied
+  --> examples/cordic.rs:51:23
+   |
+51 |     let sqrt = cordic.run::<Sqrt<N3>>(I1F15::from_num(0.25));
+   |                       ^^^ the trait `op::sealed::Feature` is not implemented for `Sqrt<N3>`
+   |
+   = help: the following other types implement trait `op::sealed::Feature`:
+             Sqrt<N0>
+             Sqrt<N1>
+             Sqrt<N2>
+```
+
+The moment we try to apply an invalid configuration to the peripheral with `freeze()` the compiler stops us!
+
+Moreover, it happily suggests some alternative valid configurations.
+
+We have coerced the compiler into recognizing and enforcing *hardware invariances*.
+
+**>>> [All HALs should do this] <<<**
 
 ## Performance
 
-Ok so it works, and the interface is robust and easy to use, but how does
-the resulting binary compare to doing it by hand?
+Let's inspect the binary to see if the abstraction introduced any runtime costs.
 
-Here is the code for configuring the CORDIC manually:
+Manual:
 
 ```rust
+// to view ASM generated
 #[no_mangle]
 #[inline(never)]
-fn cordic_init(rb: hal::stm32::CORDIC) -> TestCordic {
+fn cordic_init(rb: hal::stm32::CORDIC, rcc: &mut rcc::Rcc) -> TestCordic {
     unsafe {
         (*hal::stm32::RCC::ptr())
             .ahb1enr
@@ -1211,86 +1273,53 @@ fn cordic_init(rb: hal::stm32::CORDIC) -> TestCordic {
         w.scale().bits(0);
         unsafe { w.precision().bits(15) }
     });
+
+    unsafe { core::mem::transmute(()) }
 }
 ```
 
-...and the resulting assembly:
-
-```asm
-08000404 <cordic_init>:
- 8000404: f640 4000    	movw	r0, #0xc00
- 8000408: f64f 0200    	movw	r2, #0xf800
- 800040c: f2c4 0002    	movt	r0, #0x4002
- 8000410: f6cf 7287    	movt	r2, #0xff87
- 8000414: f8d0 1448    	ldr.w	r1, [r0, #0x448]
- 8000418: f041 0108    	orr	r1, r1, #0x8
- 800041c: f8c0 1448    	str.w	r1, [r0, #0x448]
- 8000420: 6801         	ldr	r1, [r0]
- 8000422: 4011         	ands	r1, r2
- 8000424: f441 0190    	orr	r1, r1, #0x480000
- 8000428: f041 01f1    	orr	r1, r1, #0xf1
- 800042c: 6001         	str	r1, [r0]
- 800042e: 4770         	bx	lr
-```
-
-Now with the abstraction:
+Abstraction:
 
 ```rust
+// to view ASM generated
 #[no_mangle]
 #[inline(never)]
 fn cordic_init(rb: hal::stm32::CORDIC, rcc: &mut rcc::Rcc) -> TestCordic {
-    rb.contrains(rcc).freeze()
+    rb.constrain(rcc).freeze()
 }
 ```
 
-...and the resulting assembly:
+Resulting assembly:
 
 ```asm
-08000404 <cordic_init>:
- 8000404: f241 0048    	movw	r0, #0x1048
- 8000408: 22f1         	movs	r2, #0xf1
- 800040a: f2c4 0002    	movt	r0, #0x4002
- 800040e: f2c0 0248    	movt	r2, #0x48
- 8000412: 6801         	ldr	r1, [r0]
- 8000414: f041 0108    	orr	r1, r1, #0x8
- 8000418: 6001         	str	r1, [r0]
- 800041a: f64f 31b8    	movw	r1, #0xfbb8
- 800041e: f6cf 71ff    	movt	r1, #0xffff
- 8000422: 5042         	str	r2, [r0, r1]
- 8000424: 4770         	bx	lr
-```
-> It's cool to see how our type-state combinations are baked as immediate values
-in the assembly.
-
-Are my eyes deceiving me? It's shorter??
-
-To be honest, I don't know why this is. Both of these set `CSR` to the same value:
-
-```txt
-CSR: 00000000010010010000000011110001
+movw	r0, #0xc00
+movw	r2, #0xf800
+movt	r0, #0x4002
+movt	r2, #0xff87
+ldr.w	r1, [r0, #0x448]
+orr	r1, r1, #0x8
+str.w	r1, [r0, #0x448]
+ldr	r1, [r0]
+ands	r1, r2
+orr	r1, r1, #0x480000
+orr	r1, r1, #0xf1
+str	r1, [r0]
+bx	lr
 ```
 
-So... I made a *negative*-cost abstraction? Or perhaps somehow the type information
-provides the compiler with enough context to architect the resulting binary more efficiently.
-Or maybe we are tickling different regions of the compiler which have different strategies for
-generating the binary.
-
-This will remain a mystery, for now...
+*Identical!* **Zero Cost Abstraction** achieved!
 
 ## Conclusion
 
-Nonetheless, clearly the abstraction is highly performant and does not incur any
-runtime cost, while providing a robust interface with compile-time validation.
+Clearly the abstraction is highly performant and does not incur any runtime cost, while providing
+a robust interface with compile-time validation.
 
-You may have noticed that I *did not* touch the DMA capability of the CORDIC
-peripheral, and did not include it in the abstraction. This is because I have not
-finalized my ideas for standardizing DMA interaction with resource interfaces.
-I do plan to comprehensively discuss this topic and my design choices for a future
-HAL implementation for the ADC.
+You may have noticed that I *did not* touch the DMA capability of the CORDIC peripheral, and did not
+include it in the abstraction. This is because I have not finalized my ideas for standardizing DMA
+interaction with resource interfaces. I do plan to comprehensively discuss this topic and my design
+choices for a future HAL implementation for the ADC.
 
 [^1]: SVD files describe the layout of a microcontroller and are provided by the manufacturer.
 Rust PACs are generated from these files.
 [^2]: **Z**ero-**S**ize-**T**ypes (ZSTs) do not exist in memory as they have a size of 0. The compiler
 can use this knowledge to conduct inductive reasoning and determine flow statically and with zero overhead.
-[^3]: Another HAL prototype design, the concept of splitting a resource into components that can be
-controlled and configured individually.
