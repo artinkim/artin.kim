@@ -1,11 +1,14 @@
 {{ define "main" }}
-<div class="post">
-    <div class="post-head primary-anim">
-        <h1>{{ .Title }}</h1>
-    </div>
+<main>
+    <header>{{ partial "header.html" . }}</header>
+    <div class="post">
+        <div class="post-head primary-anim">
+            <h1>{{ .Title }}</h1>
+        </div>
 
-    <div class="post-content">
-        <div class="secondary-anim">{{ .Content }}</div>
+        <div class="post-content">
+            <div class="secondary-anim">{{ .Content }}</div>
+        </div>
     </div>
-</div>
+</main>
 {{ end }}

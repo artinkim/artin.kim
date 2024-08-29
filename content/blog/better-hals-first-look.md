@@ -1227,13 +1227,13 @@ This outputs:
 So... what if I tried to use `Sqrt` with a scale of `N3`?
 
 ```txt
-error[E0277]: the trait bound `Sqrt<N3>: op::sealed::Feature` is not satisfied
+error[E0277]: the trait bound `Sqrt<N3>: op::Feature` is not satisfied
   --> examples/cordic.rs:51:23
    |
 51 |     let sqrt = cordic.run::<Sqrt<N3>>(I1F15::from_num(0.25));
-   |                       ^^^ the trait `op::sealed::Feature` is not implemented for `Sqrt<N3>`
+   |                       ^^^ the trait `op::Feature` is not implemented for `Sqrt<N3>`
    |
-   = help: the following other types implement trait `op::sealed::Feature`:
+   = help: the following other types implement trait `op::Feature`:
              Sqrt<N0>
              Sqrt<N1>
              Sqrt<N2>
@@ -1245,7 +1245,7 @@ Moreover, it happily suggests some alternative valid configurations.
 
 We have coerced the compiler into recognizing and enforcing *hardware invariances*.
 
-**>>> [All HALs should do this] <<<**
+**\>\>\> [All HALs should do this] \<\<\<**
 
 ## Performance
 
