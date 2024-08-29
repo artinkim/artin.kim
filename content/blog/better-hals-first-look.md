@@ -475,11 +475,11 @@ trait Feature {
     /// The required argument register writes.
     type NArgs<Arg>
     where
-        Arg: types::arg::State + types::sealed::Tag;
+        Arg: types::arg::State + types::Tag;
     /// The required result register reads.
     type NRes<Res>
     where
-        Res: types::res::State + types::sealed::Tag;
+        Res: types::res::State + types::Tag;
     /// The scale to be applied.
     type Scale;
     /// The function to evaluate.
@@ -518,10 +518,10 @@ So, a type `SinCos` can be made to represent this operation, and can implement
 impl Feature for SinCos {
     type NArgs<Arg> = NReg<Arg, Self::ArgCount>
     where
-        Arg: types::arg::State + types::sealed::Tag;
+        Arg: types::arg::State + types::Tag;
     type NRes<Res> = NReg<Arg, Self::ResCount>
     where
-        Res: types::res::State + types::sealed::Tag;
+        Res: types::res::State + types::Tag;
     type Scale = N0;
     type Func = Sin;
 
@@ -658,7 +658,7 @@ where
     Arg: types::arg::State,
     Res: types::res::State,
     Prec: prec::State,
-    Op: op::sealed::Feature,
+    Op: op::Feature,
 {
     type Reset = CordicReset;
 
@@ -774,7 +774,7 @@ struct Operation<'a, Arg, Res, Op>
 where
     Arg: types::arg::State,
     Res: types::res::State,
-    Op: sealed::Feature,
+    Op: Feature,
 {
     nargs: &'a Op::NArgs<Arg>,
     nres: &'a Op::NRes<Res>,
@@ -792,12 +792,12 @@ impl<'a, Arg, Res, Op> Operation<'a, Arg, Res, Op>
 where
     Arg: types::arg::State,
     Res: types::res::State,
-    Op: sealed::Feature,
+    Op: Feature,
 {
     /// Write arguments to the argument register.
     fn write<Args>(&mut self, args: Args, reg: &crate::stm32::cordic::WDATA)
     where
-        Arg: types::sealed::Tag,
+        Arg: types::Tag,
         Args: ?,
         Op::ArgCount: data_count::Property<Arg>,
     {
@@ -1045,10 +1045,10 @@ pub struct Any;
 impl Feature for Any {
     type NArgs<Arg> = ()
     where
-        Arg: types::arg::State + types::sealed::Tag;
+        Arg: types::arg::State + types::Tag;
     type NRes<Res> = ()
     where
-        Res: types::res::State + types::sealed::Tag;
+        Res: types::res::State + types::Tag;
     type Scale = ();
     type Func = ();
 
