@@ -1,20 +1,16 @@
 {{ define "main" }}
-<main class="fill">
-    <div class="splash">
-        <embed class="logo primary-anim" src="/icons/logo.svg" />
-        {{ with site.Menus.main }}
-        <nav class="menu secondary-anim">
-            {{ range . }}
-            <div class="menu-item">
-                <p class="menu-item-aux">></p>
-                <a class="inactive {{ .Name }}" href="{{ .URL }}"
-                    >{{ .Name }}</a
-                >
-                <p class="menu-item-aux"><</p>
-            </div>
-            {{ end }}
-        </nav>
+<div class="splash">
+    <embed class="logo primary-anim" src="/icons/logo.svg" />
+    {{ with site.Menus.main }}
+    <nav class="menu secondary-anim">
+        {{ range . }}
+        <div class="menu-item">
+            <p class="menu-item-aux">></p>
+            <a class="inactive {{ .Name }}" href="{{ .URL }}">{{ .Name }}</a>
+            <p class="menu-item-aux"><</p>
+        </div>
         {{ end }}
-    </div>
-</main>
+    </nav>
+    {{ end }}
+</div>
 {{ end }}

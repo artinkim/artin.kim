@@ -8,8 +8,21 @@
         "math.html" . }} {{ end }}
     </head>
     <body>
-        {{ block "main" . }}{{ end }}
-        <footer class="tertiary-anim">{{ partial "footer.html" . }}</footer>
+        {{ if not .IsHome }}
+        <header>{{ partial "header.html" . }}</header>
+        {{ end }} {{ block "main" . }}{{ end }}
+        <footer
+            class="tertiary-anim"
+            {{
+            if
+            .IsHome
+            }}style="margin-top: 0"
+            {{
+            end
+            }}
+        >
+            {{ partial "footer.html" . }}
+        </footer>
     </body>
 </html>
 

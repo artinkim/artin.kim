@@ -1,39 +1,36 @@
 {{ define "main" }}
-<main>
-    <header>{{ partial "header.html" . }}</header>
-    <div class="post">
-        {{ partial "back-button.html" }}
+<div class="post">
+    {{ partial "back-button.html" }}
 
-        <div class="post-head primary-anim">
-            <h1>{{ .Title }}</h1>
-        </div>
+    <div class="post-head primary-anim">
+        <h1>{{ .Title }}</h1>
+    </div>
 
-        <div class="post-content">
-            {{ $page := . }}
-            <div class="post-neck secondary-anim">
-                {{ with .Date }}
-                    {{ $dateHuman := $page.Date | time.Format ":date_long" }}
-                    <time datetime="{{ . }}">{{ $dateHuman }}</time>
-                {{ end }}
+    <div class="post-content">
+        {{ $page := . }}
+        <div class="post-neck secondary-anim">
+            {{ with .Date }}
+                {{ $dateHuman := $page.Date | time.Format ":date_long" }}
+                <time datetime="{{ . }}">{{ $dateHuman }}</time>
+            {{ end }}
 
-                <div class="tags">
-                    {{ range .Params.interests }}
-                        <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
-                            <p>#</p>
-                            <p>{{ . }}</p>
-                        </a>
-                    {{ end }}
-                </div>
-
-                {{ with .Params.github }}
-                    <a class="github" href="{{ . }}" target="_tab">
-                        <embed class="github" src="/icons/github-mark-white.png">
+            <div class="tags">
+                {{ range .Params.interests }}
+                    <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
+                        <p>#</p>
+                        <p>{{ . }}</p>
                     </a>
                 {{ end }}
             </div>
 
-            <div class="tertiary-anim">{{ .Content }}</div>
+            {{ with .Params.github }}
+                <a class="github" href="{{ . }}" target="_tab">
+                    <embed class="github" src="/icons/github-mark-white.png">
+                </a>
+            {{ end }}
         </div>
+
+        <div class="tertiary-anim">{{ .Content }}</div>
     </div>
-</main>
+</div>
 {{ end }}
