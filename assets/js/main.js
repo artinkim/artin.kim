@@ -20,7 +20,6 @@ function entrance() {
 
   elements
     .filter((element) => {
-      element.checkVisibility();
       const { top, bottom } = element.getBoundingClientRect();
       return bottom > 0 && top < window.innerHeight;
     })
