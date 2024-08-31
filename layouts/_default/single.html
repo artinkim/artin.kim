@@ -2,13 +2,13 @@
 <div class="post">
     {{ partial "back-button.html" }}
 
-    <div class="post-head primary-anim">
+    <div class="post-head animate">
         <h1>{{ .Title }}</h1>
     </div>
 
-    <div class="post-content">
+    <div class="post-content animate">
         {{ $page := . }}
-        <div class="post-neck secondary-anim">
+        <div class="post-neck">
             {{ with .Date }}
                 {{ $dateHuman := $page.Date | time.Format ":date_long" }}
                 <time datetime="{{ . }}">{{ $dateHuman }}</time>
@@ -30,7 +30,7 @@
             {{ end }}
         </div>
 
-        <div class="tertiary-anim">{{ .Content }}</div>
+        {{ .Content }}
     </div>
 </div>
 {{ end }}

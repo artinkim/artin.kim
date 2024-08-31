@@ -5,15 +5,15 @@
     {{ end }}
 
     {{ with .Title }}
-        <div class="post-head primary-anim">
+        <div class="post-head animate">
             <h1>{{ . }}</h1>
         </div>
     {{ end }}
 
-    <div class="post-content">
+    <div class="post-content animate">
         {{ $page := . }}
         {{ if .Params.Date }}
-            <div class="post-neck secondary-anim">
+            <div class="post-neck">
                 {{ with .Params.Date }}
                     {{ $dateHuman := $page.Date | time.Format ":date_long" }}
                     <time datetime="{{ . }}">{{ $dateHuman }}</time>
@@ -36,37 +36,35 @@
             </div>
         {{ end }}
 
-        <div class="tertiary-anim">{{ .Content }}</div>
+        {{ .Content }}
 
-        <div class="secondary-anim">
-            {{ range .Pages }}
-            <div class="post-listing">
-                <div class="post-listing-head">
-                    <h2>
-                        <a class="post-name {{ if .Params.featured }}featured{{ end }} {{ .Type }}" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
-                    </h2>
+        {{ range .Pages }}
+        <div class="post-listing">
+            <div class="post-listing-head">
+                <h2>
+                    <a class="post-name {{ if .Params.featured }}featured{{ end }} {{ .Type }}" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+                </h2>
 
-                    {{ $inner_page := . }}
-                    {{ with .Date }}
-                        {{ $dateHuman := . | time.Format ":date_long" }}
-                        <a href="{{ $inner_page.RelPermalink }}"><time datetime="{{ . }}">{{ $dateHuman }}</time></a>
-                    {{ end }}
+                {{ $inner_page := . }}
+                {{ with .Date }}
+                    {{ $dateHuman := . | time.Format ":date_long" }}
+                    <a href="{{ $inner_page.RelPermalink }}"><time datetime="{{ . }}">{{ $dateHuman }}</time></a>
+                {{ end }}
 
-                    <div class="tags">
-                        {{ range .Params.interests }}
-                            {{ if ne . $page.Name }} <!-- remove tag if in tag page -->
-                                <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
-                                    <p>#</p>
-                                    <p>{{ . }}</p>
-                                </a>
-                            {{ end }}
+                <div class="tags">
+                    {{ range .Params.interests }}
+                        {{ if ne . $page.Name }} <!-- remove tag if in tag page -->
+                            <a class="tag" href="{{ "interests/" | absURL }}{{ . | urlize }}/">
+                                <p>#</p>
+                                <p>{{ . }}</p>
+                            </a>
                         {{ end }}
-                    </div>
+                    {{ end }}
                 </div>
-                <a class="summary tertiary-anim" href="{{ .RelPermalink }}">{{ .Summary }}</a>
             </div>
-            {{ end }}
+            <a class="summary" href="{{ .RelPermalink }}">{{ .Summary }}</a>
         </div>
+        {{ end }}
     </div>
 </div>
 {{ end }}

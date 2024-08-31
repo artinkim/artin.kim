@@ -1,5 +1,6 @@
 :root {
     --content-width: min(50rem, calc(100vw - 4.6rem));
+    --animation: cubic-bezier(0, 1, 1, 1);
 }
 
 html {
@@ -37,12 +38,17 @@ a {
 }
 
 body {
+    margin: 0;
+}
+
+main {
     display: flex;
     margin: 0;
     flex-direction: column;
     min-height: calc(100vh);
     color: #f0f0f0;
     -webkit-text-size-adjust: 100%;
+    visibility: hidden;
 }
 
 footer {
@@ -80,7 +86,7 @@ footer {
 .back-button {
     color: #3e3e3e;
     text-decoration: none;
-    transition: all 200ms var(--entrance-animation);
+    transition: all 200ms var(--animation);
 }
 
 .back-button-wrapper:hover .back-button {
@@ -127,7 +133,7 @@ p code {
 
 .menu-item a {
     text-decoration: none;
-    transition: all 200ms var(--entrance-animation);
+    transition: all 200ms var(--animation);
     margin: 0;
     font-family: "SF Mono";
 }
@@ -146,7 +152,7 @@ p code {
     color: #505050;
     opacity: 0;
     font-family: "SF Mono";
-    transition: all 200ms var(--entrance-animation);
+    transition: all 200ms var(--animation);
 }
 
 .menu-item:hover a.inactive {
@@ -183,7 +189,7 @@ header {
 
 .tag p {
     margin: auto;
-    transition: all 200ms var(--entrance-animation);
+    transition: all 200ms var(--animation);
 }
 
 .tag:hover p {
@@ -230,6 +236,7 @@ header {
     text-decoration: none;
     margin: auto 0;
     margin-right: 1rem;
+    transition: all 200ms var(--animation);
 }
 
 .menu-item a.active {
@@ -251,7 +258,7 @@ header {
 .summary {
     color: #808080;
     text-decoration: none;
-    transition: all 200ms var(--entrance-animation);
+    transition: all 200ms var(--animation);
 }
 
 .post-listing:hover .summary {
@@ -294,7 +301,7 @@ header {
 .featured {
     color: #ffd740;
     text-shadow: #ffd74080 0 0 1rem;
-    transition: all 200ms var(--entrance-animation);
+    transition: all 200ms var(--animation);
 }
 
 .post-listing:hover .featured {

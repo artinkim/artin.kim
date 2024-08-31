@@ -8,21 +8,23 @@
         "math.html" . }} {{ end }}
     </head>
     <body>
-        {{ if not .IsHome }}
-        <header>{{ partial "header.html" . }}</header>
-        {{ end }} {{ block "main" . }}{{ end }}
-        <footer
-            class="tertiary-anim"
-            {{
-            if
-            .IsHome
-            }}style="margin-top: 0"
-            {{
-            end
-            }}
-        >
-            {{ partial "footer.html" . }}
-        </footer>
+        <main>
+            {{ if not .IsHome }}
+            <header>{{ partial "header.html" . }}</header>
+            {{ end }} {{ block "main" . }}{{ end }}
+            <footer
+                class="animate"
+                {{
+                if
+                .IsHome
+                }}style="margin-top: 0"
+                {{
+                end
+                }}
+            >
+                {{ partial "footer.html" . }}
+            </footer>
+        </main>
     </body>
 </html>
 
