@@ -97,6 +97,12 @@ footer {
 pre {
     border-radius: 0.5rem;
     overflow-x: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+pre::-webkit-scrollbar {
+    display: none;
 }
 
 pre code {
