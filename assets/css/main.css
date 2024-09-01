@@ -91,7 +91,6 @@ footer {
 
 .back-button-wrapper:hover .back-button {
     color: white;
-    transform: translateX(-1rem);
 }
 
 pre {
@@ -287,6 +286,12 @@ header {
     overflow: auto;
     border-radius: 0.5rem;
     margin-top: 1rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.gallery::-webkit-scrollbar {
+    display: none;
 }
 
 .post-content video,
