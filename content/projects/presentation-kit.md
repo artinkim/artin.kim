@@ -17,7 +17,7 @@ Create stunning presentations with the power of SwiftUI.
 
 Add this repo to your SwiftUI project via the package manager.
 
-```
+```txt
 https://github.com/AdinAck/PresentationKit
 ```
 

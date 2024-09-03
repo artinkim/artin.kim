@@ -37,12 +37,12 @@ cargo embassy init --help
 ```
 
 To run the project, use:
-```
+```sh
 cargo run
 ```
 
 ...or to deploy the project without RTT:
-```
+```sh
 cargo embed
 ```
 
