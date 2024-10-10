@@ -1060,7 +1060,7 @@ impl Feature for Any {
 Since `Any`'s implementation of `Feature` assigns the unit type to everything, a `Cordic` with
 an `Any` as the `Op` generic will *not* satisfy the constraints required for `start` and `result`.
 
-This is *good* as those methods no longer contextually make sense for a `Cordic` with am
+This is *good* as those methods no longer contextually make sense for a `Cordic` with an
 unspecified operation.
 
 So we need to implement a new way to conduct operations with the Cordic dynamically.
