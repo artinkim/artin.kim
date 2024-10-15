@@ -8,7 +8,7 @@ Embedded system firmware has been written in C for decades, but recently a movem
 
 The Embedded Rust project is still in its infancy, and demands careful attention and consideration for its emerging design.
 
-You probably know this already, and are aware of the benefits of Rust in any system, for this propositum I will outline the
+You probably know this already, and are aware of the benefits of Rust in any system, for this propositum we will outline the
 scope of the project, what has been done, what is to be done, the future, motivation, etc.
 
 ## Table of Contents
@@ -64,7 +64,7 @@ behind some design pattern will always scale to whatever application may use the
 
 Rust as a language (if properly coerced) can provide us with incredible guarantees about our system, let's look at a common example.
 
-"I want EXTI to fire on the rising edge of pin PB3."
+"I want EXTI[^3] to fire on the rising edge of pin PB3."
 
 ### C
 
@@ -246,6 +246,8 @@ use.
 
 ---
 
+**The correctness of our program is now guaranteed by Rust's type system. Yay!**
+
 Levaraging Rust's ownership model, many of these steps had "prerequisites".
 
 For example, it doesn't make sense to enable an EXTI lane if the corresponding port selection hasn't been done with SYSCFG.
@@ -271,7 +273,7 @@ Furthermore, *other* peripherals may want to observe the pin as well, like the A
 
 The current design fails to express this.
 
-I propose the addition of "peripheral observation" where peripherals can be encapsulated by an
+We propose the addition of "peripheral observation" where peripherals can be encapsulated by an
 observation fascilitating type which dispatches "observation tokens" representing a
 hardware subscription to the peripheral.
 
@@ -290,4 +292,6 @@ The breakdown of "projects" involved in this work are:
 - Integrating "observation" design pattern.
 
 [^1]: SVD files are provided by the manufacturer and outline the register map for the entire device.
-[^2]: PAC: **P**eripheral **A**ccess **C**rate
+[^2]: PAC: **P**eripheral **A**ccess **C**rate.
+[^3]: EXTI is a peripheral in STM32 microcontrollers that fascilitates external interrupt registration. For example,
+pin voltage edges can trigger interrupts.
