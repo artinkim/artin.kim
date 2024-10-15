@@ -346,6 +346,10 @@ blockquote p {
     color: #ff4040;
     text-shadow: #ff4040 0 0 5rem;
 }
+.safe {
+    color: #40ff40;
+    text-shadow: #ff4040 0 0 5rem;
+}
 
 .DENY,
 .error {

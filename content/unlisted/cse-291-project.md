@@ -17,6 +17,9 @@ scope of the project, what has been done, what is to be done, the future, motiva
 - [Motivation](#motivation)
   - [C](#c)
   - [Rust](#rust)
+  - [Rust (HAL)](#rust-hal)
+- [Observation](#observation)
+- [Breakdown](#breakdown)
 
 ## Goal
 
@@ -41,7 +44,7 @@ flowchart TD
     E[Application]
 ```
 
-Every layer represents an independent Rust crate.
+Every layer represents an independent Rust crate or group of crates.
 
 1. SVD[^1] files are parsed and reconstituted as YAMLs.
 1. Manual patches are applied (because vendors take pride in their rate of error).
@@ -114,7 +117,7 @@ The answers to all of these questions are:
 1. No you couldn't
 1. With ease
 
-All of which result it **silent incorrectness**.
+All of which result in **silent incorrectness**.
 
 > The correction to make the code work as expected is:
 > ```diff
@@ -126,11 +129,11 @@ We are here to talk about Rust though, so let's quickly stop writing any C and l
 
 ### Rust
 
-Rather than providing raw structs to memory regions, PACs generate types that correspond to register blocks and fields:
+Rather than providing raw structs to memory regions, PACs expose types that correspond to register blocks and fields:
 
 ```rust
 #[entry]
-fn main() -> ! {
+fn main() {
     // acquire all peripherals
     let p = Peripherals::take();
 
@@ -173,6 +176,118 @@ fn main() -> ! {
 ```
 
 Are the comments even necessary any more?
+
+The mistake made in the C version is not even possible here.
+
+Let's ask the same questions again:
+
+**Q:** In order to configure the EXTI peripheral, we interacted with... **3** other peripherals? I wonder
+who else is interacting with those peripherals...
+
+**A:** This remains unresolved since the `write` method does not require an
+exclusive reference to the register block.
+
+**Q:** Is *this* code correct?
+
+**A:** While it is immune to simple arithmetic errors, the validity of register values with relation
+to *other* register values is not guaranteed. Some peripheral configurations are not valid across
+all combinations of register values.
+
+**Q:** Is this code context agnostic? In other words, could changing code *outside* of this function
+render it inoperable?
+
+**A:** Since the **type** of each peripheral is not dependent on our action, external code could
+put the peripherals into states we did not expect and interfere with the behavior of our code.
+
+---
+
+*Ahah... types ;)*
+
+This is where the HAL comes in. We can create type-states which represent peripheral configurations.
+
+### Rust (HAL)
+
+Let's do this once more, using a HAL:
+
+```rust
+fn main() {
+    let p = Peripherals::take();
+
+    let rcc: RccParts = p.RCC.split();
+
+    let gpiob: GpioBParts = p.GPIOB.split();
+    let pb3: PB3<Input<Floating>> = gpiob.pb3.freeze();
+
+    let syscfg_en: Rcc<SysCfg, Enabled> = rcc.syscfg_en.freeze();
+    let syscfg: SysCfgParts = p.SYSCFG.split(syscfg_en);
+    let exti3_syscfg: SysCfg<EXTI3, PB> = syscfg.exti3.freeze();
+
+    let exti: ExtiParts = p.EXTI.split();
+    let lane3: Exti<L3, Unmasked<PB3<Input<Floating>>, Rising>> = exti.gpio3.freeze(exti_syscfg, pb3);
+}
+```
+
+**Q:** In order to configure the EXTI peripheral, we interacted with... **3** other peripherals? I wonder
+who else is interacting with those peripherals...
+
+**A:** In order to do so they would need ownership of the constrained peripheral types which would require
+safe deconstruction. Any other usage would require {{< special unsafe >}}.
+
+**Q:** Is *this* code correct?
+
+**A:** The type-states guarantee correctness. (Details of how this is done in [Better HALs: First Look](/blog/better-hals-first-look))
+
+**Q:** Is this code context agnostic? In other words, could changing code *outside* of this function
+render it inoperable?
+
+**A:** Since the **type** of each peripheral *is* dependent on our action, behavior is only possible
+on types which define it as such. All necessary hardware invariances must be established before desired
+use.
+
+---
+
+Levaraging Rust's ownership model, many of these steps had "prerequisites".
+
+For example, it doesn't make sense to enable an EXTI lane if the corresponding port selection hasn't been done with SYSCFG.
+And you can't even do that until you *enable* SYSCFG!
+
+Since the state of peripherals is represented with types and the capability of methods is expressed by their
+type signatures, the ability to produce logical errors is approaching zero.
+
+The code you just read is a glimpse into what can be. As of now, HALs are not quite at this point.
+
+Some things are strictly represented by type-states, others (like EXTI) are not.
+
+The goal is for all HAL interfaces to be consistent, comprehensive, and {{< special safe >}}.
+
+## Observation
+
+EXTI "observes" GPIO via hardware. We represented this by *moving* the pin into the EXTI lane for usage.
+
+But... now we can't use the pin in software as it has been moved. Nothing about the hardware
+dictates that software can no longer control the pin while EXTI observes it.
+
+Furthermore, *other* peripherals may want to observe the pin as well, like the ADC or comparators.
+
+The current design fails to express this.
+
+I propose the addition of "peripheral observation" where peripherals can be encapsulated by an
+observation fascilitating type which dispatches "observation tokens" representing a
+hardware subscription to the peripheral.
+
+Details of this are discussed in [this draft PR](https://github.com/stm32-rs/stm32g4xx-hal/pull/138).
+
+And a sketch of the design is in [this gist](https://gist.github.com/AdinAck/c5713baf8b92d7075e10a9e03591569a).
+
+## Breakdown
+
+The breakdown of "projects" involved in this work are:
+
+- Modifying [svd2rust](https://github.com/rust-embedded/svd2rust) to generate unique types for registers and fields.
+- Solidifying procedure and design philosophy for type-state oriented HAL interfaces (proto-hal).
+  - Updating current HAL implementations to reflect this.
+  - Creating procedural macros to fascilitate this.
+- Integrating "observation" design pattern.
 
 [^1]: SVD files are provided by the manufacturer and outline the register map for the entire device.
 [^2]: PAC: **P**eripheral **A**ccess **C**rate
