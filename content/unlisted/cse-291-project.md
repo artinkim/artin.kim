@@ -8,7 +8,7 @@ Embedded system firmware has been written in C for decades, but recently a movem
 
 The Embedded Rust project is still in its infancy, and demands careful attention and consideration for its emerging design.
 
-You probably know this already, and are aware of the benefits of Rust in any system, for this propositum we will outline the
+You probably know this already, and are aware of the benefits of Rust in any system. For this propositum we will outline the
 scope of the project, what has been done, what is to be done, the future, motivation, etc.
 
 ## Table of Contents

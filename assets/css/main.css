@@ -348,7 +348,7 @@ blockquote p {
 }
 .safe {
     color: #40ff40;
-    text-shadow: #ff4040 0 0 5rem;
+    text-shadow: #40ff40 0 0 5rem;
 }
 
 .DENY,
