@@ -19,5 +19,12 @@
         {{ end }}
     </div>
     {{ end }}
+    <div class="menu-item">
+        {{ if eq $currentPage.Section "unlisted" }}
+        <p class="menu-item-aux">></p>
+        <a class="inactive unlisted" href="/unlisted">unlisted</a>
+        <p class="menu-item-aux"><</p>
+    </div>
+    {{ end }}
 </nav>
 {{ end }}

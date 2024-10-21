@@ -157,7 +157,6 @@ p code {
     color: #505050;
     opacity: 0;
     font-family: "SF Mono";
-    transition: all 200ms var(--animation);
 }
 
 .menu-item:hover a.inactive {
@@ -258,6 +257,12 @@ header {
 .menu-item a.active.blog,
 .post-listing:hover .post-name.blog {
     color: #a0ffa0;
+}
+
+.menu-item a.inactive.unlisted,
+.menu-item a.active.unlisted,
+.post-listing:hover .post-name.unlisted {
+    color: #ff4040;
 }
 
 .summary {
