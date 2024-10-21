@@ -1,3 +1,5 @@
+{{ $special := or (.IsHome) (eq .Name "404 Page not found") }}
+
 <!doctype html>
 <html
     lang="{{ or site.Language.LanguageCode }}"
@@ -9,14 +11,14 @@
     </head>
     <body>
         <main>
-            {{ if not .IsHome }}
+            {{ if not $special }}
             <header>{{ partial "header.html" . }}</header>
             {{ end }} {{ block "main" . }}{{ end }}
             <footer
                 class="animate"
                 {{
                 if
-                .IsHome
+                $special
                 }}style="margin-top: 0"
                 {{
                 end
