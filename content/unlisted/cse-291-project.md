@@ -191,10 +191,10 @@ fn main() {
 }
 ```
 
-1. ~Ambiguous resource usage.~ Resources are moved into structures to indicate usage.
-1. ~Correctness is not guaranteed.~ Invalid peripheral states do not exist and usage of
+1. ~~Ambiguous resource usage.~~ Resources are moved into structures to indicate usage.
+1. ~~Correctness is not guaranteed.~~ Invalid peripheral states do not exist and usage of
 peripherals is restricted to valid operations given the statically determined state.
-1. ~Behavior is not context agnostic.~ Since the types encode the hardware state,
+1. ~~Behavior is not context agnostic.~~ Since the types encode the hardware state,
 plopping this code into an environment where the peripherals are referenced externally
 or not in the expected state would require {{< special unsafe >}} and safe transformation
 respectively.
