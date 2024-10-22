@@ -104,14 +104,17 @@ pre::-webkit-scrollbar {
     display: none;
 }
 
-pre code {
-    margin: 1rem;
-}
-
-p code {
+code {
     color: #a0a0a0;
     font-size: 1rem;
     font-weight: bold;
+}
+
+pre code {
+    color: #f0f0f0;
+    margin: 1rem;
+    font-size: 0.8rem;
+    font-weight: normal;
 }
 
 .line {

@@ -4,15 +4,26 @@ date = 2024-10-15
 draft = false
 +++
 
-Embedded system firmware has been written in C for decades, but recently a movement to use Rust instead has surfaced.
+{{< video src="https://cdn.adinack.dev/cse-291/North%20Stairwell%20Processed.mp4" controls="false" muted="true" autoplay="true" loop="true" >}}
+> A video of my onewheel shutting off at nearly 30 mph due to poorly designed firmware.
 
-The Embedded Rust project is still in its infancy, and demands careful attention and consideration for its emerging design.
+Millions of people rely on **systems** to keep them safe every day.
 
-You probably know this already, and are aware of the benefits of Rust in any system. For this propositum we will outline the
-scope of the project, what has been done, what is to be done, the future, motivation, etc.
+When these systems fail, people get hurt. It the responsibility of systems engineers to do everything within their power
+to eliminate modes of failure.
+
+So what steps can be taken to ensure catastrophic failures do not occur?
+
+It is common knowledge that Rust is used to ensure *memory* safety and general correctness via the type system.
+
+Our project proposes a system for extending Rust's safety guarantees to HALs[^4].
+
+Microcontroller peripherals can be extraordinarily complex to use, and can sink valuable developer time.
+
+Our system would not only enforce **hardware invariances**, but the resulting interface would be readable, robust, and consistent
+across vendors.
 
 ## Table of Contents
-- [Goal](#goal)
 - [Ecosystem](#ecosystem)
 - [Motivation](#motivation)
   - [C](#c)
@@ -20,15 +31,6 @@ scope of the project, what has been done, what is to be done, the future, motiva
   - [Rust (HAL)](#rust-hal)
 - [Observation](#observation)
 - [Breakdown](#breakdown)
-
-## Goal
-
-My work involves the fortification of the interfaces exposed by the entire Embedded Rust stack. Maximization of safety, ergonomics, and
-performance is paramount.
-
-The scope of this project will be some subset of this work, which will be elaborated later.
-
-Prior work: [Better HALs: First Look](/blog/better-hals-first-look)
 
 ## Ecosystem
 
@@ -53,24 +55,17 @@ is called the PAC[^2].
 1. The HALs define higher level structures which use the PAC internally.
 1. The application uses the HAL structures and the PAC for any holes in the HAL
 
-My work spans across this entire domain.
+## Example
 
-## Motivation
-
-As a *safety-ciritcal* aware system designer, I indulge myself in any and all methods of maximizing **guarantees** of any kind.
-
-Whether it be verification that some component of the system behaves in some way no matter what, or that the fundamental ideas
-behind some design pattern will always scale to whatever application may use them.
-
-Rust as a language (if properly coerced) can provide us with incredible guarantees about our system, let's look at a common example.
+Let's endeavor to complete a simple task on a microcontroller with existing methods and compare to the proposed interface.
 
 "I want EXTI[^3] to fire on the rising edge of pin PB3."
 
 ### C
 
-Manufacturers provide direct and fragile abstractions for us to use.
+Manufacturers provide direct and fragile abstractions for use.
 
-To achieve our goal looks like this:
+Implementing the task looks like this:
 
 ```c
 void main() {
@@ -102,30 +97,20 @@ void main() {
 }
 ```
 
-I want to make it extremely clear that this code **terrifies** me, here's why!
+This code is extremely fragile for the following reasons:
 
-1. In order to configure the EXTI peripheral, we interacted with... **3** other peripherals? I wonder
-who else is interacting with those peripherals...
-1. I tricked you, that code is *not* correct and catastrophically so, could you tell?
-The compiler sure couldn't!
-1. Is this code context agnostic? In other words, could changing code *outside* of this function
-render it inoperable?
+1. Multiple peripherals are involved in an ambiguous manner.
+1. This code is not actually correct. Not only is this not obvious to a reader, but the compiler is
+not powerful enough to determine as such to warn the reader.
+1. The behavior of this code is not guaranteed across all contexts.
 
-The answers to all of these questions are:
-
-1. Who knows
-1. No you couldn't
-1. With ease
-
-All of which result in **silent incorrectness**.
+The listed failures of this code are categorized as **silent incorrectness**.
 
 > The correction to make the code work as expected is:
 > ```diff
 > -SYSCFG->EXTICR[0] &=  SYSCFG_EXTICR1_EXTI3_Msk;
 > +SYSCFG->EXTICR[0] &= ~SYSCFG_EXTICR1_EXTI3_Msk;
 > ```
-
-We are here to talk about Rust though, so let's quickly stop writing any C and look at how Rust would handle this.
 
 ### Rust
 
@@ -175,39 +160,18 @@ fn main() {
 }
 ```
 
-Are the comments even necessary any more?
+The mistake made in the previous C code is not expressible as valid Rust code.
 
-The mistake made in the C version is not even possible here.
+The following failures still remain:
 
-Let's ask the same questions again:
-
-**Q:** In order to configure the EXTI peripheral, we interacted with... **3** other peripherals? I wonder
-who else is interacting with those peripherals...
-
-**A:** This remains unresolved since the `write` method does not require an
-exclusive reference to the register block.
-
-**Q:** Is *this* code correct?
-
-**A:** While it is immune to simple arithmetic errors, the validity of register values with relation
-to *other* register values is not guaranteed. Some peripheral configurations are not valid across
-all combinations of register values.
-
-**Q:** Is this code context agnostic? In other words, could changing code *outside* of this function
-render it inoperable?
-
-**A:** Since the **type** of each peripheral is not dependent on our action, external code could
-put the peripherals into states we did not expect and interfere with the behavior of our code.
-
----
-
-*Ahah... types ;)*
-
-This is where the HAL comes in. We can create type-states which represent peripheral configurations.
+1. Ambiguous resource usage.
+1. Correctness is not guaranteed.
+1. Behavior is not context agnostic.
 
 ### Rust (HAL)
 
-Let's do this once more, using a HAL:
+Fully leveraging the type system, peripheral states and relations are comprehensively
+represented:
 
 ```rust
 fn main() {
@@ -227,46 +191,23 @@ fn main() {
 }
 ```
 
-**Q:** In order to configure the EXTI peripheral, we interacted with... **3** other peripherals? I wonder
-who else is interacting with those peripherals...
-
-**A:** In order to do so they would need ownership of the constrained peripheral types which would require
-safe deconstruction. Any other usage would require {{< special unsafe >}}.
-
-**Q:** Is *this* code correct?
-
-**A:** The type-states guarantee correctness. (Details of how this is done in [Better HALs: First Look](/blog/better-hals-first-look))
-
-**Q:** Is this code context agnostic? In other words, could changing code *outside* of this function
-render it inoperable?
-
-**A:** Since the **type** of each peripheral *is* dependent on our action, behavior is only possible
-on types which define it as such. All necessary hardware invariances must be established before desired
-use.
+1. ~Ambiguous resource usage.~ Resources are moved into structures to indicate usage.
+1. ~Correctness is not guaranteed.~ Invalid peripheral states do not exist and usage of
+peripherals is restricted to valid operations given the statically determined state.
+1. ~Behavior is not context agnostic.~ Since the types encode the hardware state,
+plopping this code into an environment where the peripherals are referenced externally
+or not in the expected state would require {{< special unsafe >}} and safe transformation
+respectively.
 
 ---
 
-**The correctness of our program is now guaranteed by Rust's type system. Yay!**
-
-Levaraging Rust's ownership model, many of these steps had "prerequisites".
-
-For example, it doesn't make sense to enable an EXTI lane if the corresponding port selection hasn't been done with SYSCFG.
-And you can't even do that until you *enable* SYSCFG!
-
-Since the state of peripherals is represented with types and the capability of methods is expressed by their
-type signatures, the ability to produce logical errors is approaching zero.
-
-The code you just read is a glimpse into what can be. As of now, HALs are not quite at this point.
-
-Some things are strictly represented by type-states, others (like EXTI) are not.
-
-The goal is for all HAL interfaces to be consistent, comprehensive, and {{< special safe >}}.
+**The correctness of the peripheral usage is now guaranteed by Rust's type system.**
 
 ## Observation
 
-EXTI "observes" GPIO via hardware. We represented this by *moving* the pin into the EXTI lane for usage.
+EXTI "observes" GPIO via hardware. This was represented by *moving* the pin into the EXTI lane for usage.
 
-But... now we can't use the pin in software as it has been moved. Nothing about the hardware
+Unfortunately, the pin can no longer be used by software as it has been moved. Nothing about the hardware
 dictates that software can no longer control the pin while EXTI observes it.
 
 Furthermore, *other* peripherals may want to observe the pin as well, like the ADC or comparators.
@@ -295,3 +236,4 @@ The breakdown of "projects" involved in this work are:
 [^2]: PAC: **P**eripheral **A**ccess **C**rate.
 [^3]: EXTI is a peripheral in STM32 microcontrollers that fascilitates external interrupt registration. For example,
 pin voltage edges can trigger interrupts.
+[^4]: HAL: **H**ardware **A**bstraction **L**ayer.
