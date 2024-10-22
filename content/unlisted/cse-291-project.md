@@ -9,7 +9,7 @@ draft = false
 
 Millions of people rely on **systems** to keep them safe every day.
 
-When these systems fail, people get hurt. It the responsibility of systems engineers to do everything within their power
+When these systems fail, people get hurt. It is the responsibility of systems engineers to do everything in their power
 to eliminate modes of failure.
 
 So what steps can be taken to ensure catastrophic failures do not occur?
