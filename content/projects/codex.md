@@ -38,4 +38,4 @@ struct ContentView: View {
 }
 ```
 
-This project is very useful when combined with [PresentationKit](https://github.com/adinack/presentationkit).
+This project is very useful when combined with [PresentationKit](/projects/presentation-kit).
