@@ -21,7 +21,7 @@ Typical usages looked like:
 p.PREIPH.reg().write(|w| {
     w.some_flag()
         .set_bit()
-        .other_field().
+        .other_field()
         .baked_in_state()
 });
 ```
