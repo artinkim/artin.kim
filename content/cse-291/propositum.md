@@ -2,6 +2,7 @@
 title = "CSE 291 Project Propositum"
 date = 2024-10-15
 draft = false
+unlisted = true
 +++
 
 {{< video src="https://cdn.adinack.dev/cse-291/North%20Stairwell%20Processed.mp4" controls="false" muted="true" autoplay="true" loop="true" >}}

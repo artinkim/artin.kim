@@ -20,7 +20,7 @@
     </div>
     {{ end }}
     <div class="menu-item">
-        {{ if eq $currentPage.Section "" }}
+        {{ if or $currentPage.Params.unlisted (eq $currentPage.Section "") }}
         <p class="menu-item-aux">></p>
         <a class="inactive unlisted">unlisted</a>
         <p class="menu-item-aux"><</p>
