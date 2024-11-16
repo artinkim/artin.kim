@@ -121,7 +121,11 @@ In the case of CORDIC, the selected function, precision, scale, are all very obv
 stateful fields.
 
 `csr::rrdy` is also a stateful field, even though we can't write to it. It indicates
-whether data is ready to be read or not.
+whether data is ready to be read or not. The state is resolvable via `read`ing the
+field value.
+
+Fields which aren't `read`able but are `write`able can have their state resolved by
+writing to the field or via an external resolution effect.
 
 `wdata::arg` is **not** stateful because it's value does not influence the behavior
 of the peripheral. *Writing* to this register certainly influences the state, but
@@ -140,7 +144,7 @@ To put it formally:
 
 A field is stateful if its value indicates a peripheral state.
 
-Stateful fields must be `read`able or `write`able.
+Stateful fields must be resolvable.
 
 Stateful fields must have a reset state.
 
@@ -192,7 +196,7 @@ struct FieldArgs {
 ```
 > Struct representing arguments of the `#[field(..)]` attribute.
 
-## Expressive Errors
+### Expressive Errors
 
 With these structs, helpful spanned errors can be emitted:
 
