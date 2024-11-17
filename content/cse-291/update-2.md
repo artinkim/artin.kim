@@ -208,7 +208,7 @@ their spans can be tied to the attribute responsible for their creation.
 For example, overlapping field domains:
 
 ![](https://cdn.adinack.dev/cse-291/static-analysis-error.png)
-> This error is fibricated for demonstrating span redirection.
+> This error is fabricated for demonstrating span redirection.
 
 ## Public Contributions
 
