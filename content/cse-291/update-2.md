@@ -25,7 +25,7 @@ The state of a register is the sum of the states of its fields.
 
 The state of a block is the sum of the states of its registers.
 
-States cane be **entitled** to other states.
+States can be **entitled** to other states.
 
 Operations can be **entitled** to other states.
 
