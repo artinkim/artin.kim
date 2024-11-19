@@ -6,7 +6,7 @@ unlisted = true
 +++
 
 This week's efforts were directed towards implementing the new
-peripheral access generation ssytem.
+peripheral access generation system.
 
 ## Theory
 
