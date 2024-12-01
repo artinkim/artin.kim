@@ -413,7 +413,7 @@ anything until they are in a register struct.
 
 The `TransitionBuilder` is purely for building... transitions.
 
-If we look at the expended `TransitionBuilder` for `csr`:
+If we look at the expanded `TransitionBuilder` for `csr`:
 
 ```rust
 pub struct TransitionBuilder<
