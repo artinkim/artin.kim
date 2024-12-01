@@ -350,6 +350,7 @@ blockquote p {
     flex-wrap: wrap;
 }
 
+.invalid,
 .unsafe {
     color: #ff4040;
     text-shadow: #ff4040 0 0 5rem;
