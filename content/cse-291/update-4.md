@@ -361,7 +361,7 @@ let p = p.csr(|reg| {
 ```
 > This configuration is {{< special "invalid" >}} because the
 > entitlement of `nargs` is not satisfied.
-> Entitlement and effect enforcement is next to be impplemented.
+> Entitlement and effect enforcement is next to be implemented.
 
 And now our peripheral is in the state we desired.
 
