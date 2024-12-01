@@ -3,6 +3,7 @@ title = "CSE 291 Project Propositum"
 date = 2024-10-15
 draft = false
 unlisted = true
+summary = "Millions of people rely on systems to keep them safe every day. When these systems fail, people get hurt. It is the responsibility of systems engineers to do everything in their power to eliminate modes of failure. So what steps can be taken to ensure catastrophic failures do not occur?"
 +++
 
 {{< video src="https://cdn.adinack.dev/cse-291/North%20Stairwell%20Processed.mp4" controls="false" muted="true" autoplay="true" loop="true" >}}

@@ -3,6 +3,7 @@ title = "CSE 291 Project Update 4"
 date = 2024-12-01
 draft = false
 unlisted = true
+summary = "This week's efforts were directed towards refactoring the peripheral description model, implementing more static analysis functionality, and generating usable interfaces."
 +++
 
 This week's efforts were directed towards refactoring the

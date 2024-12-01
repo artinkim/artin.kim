@@ -3,6 +3,7 @@ title = "CSE 291 Project Update 3"
 date = 2024-11-23
 draft = false
 unlisted = true
+summary = "This week's efforts were directed towards implementing the first level of static analysis and the fascilitation of entitlements."
 +++
 
 This week's efforts were directed towards implementing the first

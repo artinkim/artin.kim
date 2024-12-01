@@ -3,6 +3,7 @@ title = "CSE 291 Project Update 2"
 date = 2024-11-16
 draft = false
 unlisted = true
+summary = "This week's efforts were directed towards implementing the new peripheral access generation system."
 +++
 
 This week's efforts were directed towards implementing the new
