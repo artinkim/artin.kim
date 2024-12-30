@@ -3,7 +3,7 @@ title = "Headlights"
 date = 2023-11-22
 draft = false
 interests = ["embedded", "power", "rust", "swiftui", "ble", "onewheel"]
-summary = "A versatile open-source battery management system designed for use in tandem with a central computer/microcontroller."
+summary = "100v current-mode LED driver for custom Onewheel headlights."
 featured = true
 +++
 
