@@ -229,7 +229,7 @@ pub async fn run(&mut self, mut model: impl Mutex<T = Model>) -> Result<(), Erro
 }
 ```
 
-The pump interface is mostly similar, accept for this method:
+The pump interface is mostly similar, except for this method:
 
 ```rust
 pub async fn update_pump(&mut self, target: PumpState) -> Result<(), Error> {
