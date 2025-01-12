@@ -3,6 +3,7 @@ title = "Sensorless Observer"
 date = 2024-08-19
 draft = false
 math = true
+unlisted = true
 +++
 
 Our goal is to design a sensorless observer that works from zero to high speed.

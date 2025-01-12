@@ -2,6 +2,7 @@
 title = "Resume"
 date = 2024-09-01
 draft = false
+unlisted = true
 +++
 
 (760) 626-6570 | aiackerman@ucsd.edu | [GitHub](https://github.com/AdinAck) | [Website](https://adinack.dev)
