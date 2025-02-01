@@ -3,13 +3,26 @@
     <embed class="logo" src="/icons/logo.svg" />
     {{ with site.Menus.main }}
     <nav class="menu animate">
-        {{ range . }}
-        <div class="menu-item">
-            <p class="menu-item-aux">></p>
-            <a class="inactive {{ .Name }}" href="{{ .URL }}">{{ .Name }}</a>
-            <p class="menu-item-aux"><</p>
+        <div class="internal">
+            {{ range . }}
+            <div class="menu-item">
+                <p class="menu-item-aux">></p>
+                <a class="inactive {{ .Name }}" href="{{ .URL }}"
+                    >{{ .Name }}</a
+                >
+                <p class="menu-item-aux"><</p>
+            </div>
+            {{ end }}
         </div>
-        {{ end }}
+
+        <div class="external">
+            <div class="menu-item">
+                <p class="menu-item-aux">></p>
+                <a class="active art" href="https://art.adinack.dev">art</a>
+                <embed class="icon" src="/icons/arrow.up.right.svg" />
+                <p class="menu-item-aux"><</p>
+            </div>
+        </div>
     </nav>
     {{ end }}
 </div>

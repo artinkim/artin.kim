@@ -3,18 +3,31 @@
     <h2 class="four-o-four primary-anim">404</h2>
     {{ with site.Menus.main }}
     <nav class="menu animate">
-        <div class="menu-item">
-            <p class="menu-item-aux">></p>
-            <a class="inactive" href="/">home</a>
-            <p class="menu-item-aux"><</p>
+        <div class="internal">
+            <div class="menu-item">
+                <p class="menu-item-aux">></p>
+                <a class="inactive" href="/">home</a>
+                <p class="menu-item-aux"><</p>
+            </div>
+            {{ range . }}
+            <div class="menu-item">
+                <p class="menu-item-aux">></p>
+                <a class="inactive {{ .Name }}" href="{{ .URL }}"
+                    >{{ .Name }}</a
+                >
+                <p class="menu-item-aux"><</p>
+            </div>
+            {{ end }}
         </div>
-        {{ range . }}
-        <div class="menu-item">
-            <p class="menu-item-aux">></p>
-            <a class="inactive {{ .Name }}" href="{{ .URL }}">{{ .Name }}</a>
-            <p class="menu-item-aux"><</p>
+
+        <div class="external">
+            <div class="menu-item">
+                <p class="menu-item-aux">></p>
+                <a class="active art" href="https://art.adinack.dev">art</a>
+                <embed class="icon" src="/icons/arrow.up.right.svg" />
+                <p class="menu-item-aux"><</p>
+            </div>
         </div>
-        {{ end }}
     </nav>
     {{ end }}
 </div>

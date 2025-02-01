@@ -133,10 +133,27 @@ pre code {
     margin: auto;
 }
 
-.menu {
+.icon {
+    height: 0.5rem;
+    display: inline;
+    margin: auto;
+}
+
+.menu.inline {
+    display: flex;
+    flex-direction: horizontal;
+    justify-content: space-between;
+}
+
+.menu .external,
+.menu .internal {
+    padding: 1rem;
     display: flex;
     cursor: pointer;
-    padding: 1rem;
+}
+
+.external {
+    justify-content: center;
 }
 
 .menu-item a {
@@ -389,13 +406,20 @@ blockquote p {
     }
 }
 
-@media only screen and (max-width: 30rem) {
+@media only screen and (max-width: 40rem) {
     header {
         position: relative;
     }
 
     .menu {
         flex-direction: column;
+        padding: 1rem;
+    }
+
+    .menu .external,
+    .menu .internal {
+        flex-direction: column;
         gap: 0.5rem;
+        padding: 0.5rem;
     }
 }
