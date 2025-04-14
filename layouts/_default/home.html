@@ -2,7 +2,8 @@
 <div class="home-container animate">
     <!-- Title Section at Top -->
     <div class="title-section">
-        <h1 class="primary-anim">{{ site.Title }}</h1>
+        <!-- H1 is initially empty, JS will add spans -->
+        <h1 class="primary-anim"></h1>
         {{ with site.Menus.main }}
         <nav class="menu inline animate">
             {{ range . }}
@@ -85,85 +86,185 @@
     const aboutSection = document.querySelector('.about-section');
     const highlightsSection = document.querySelector('.highlights-section');
 
-    // --- Prepare Nav Links for Typewriter ---
+    // --- Config ---
+    const targetTitle = "{{ site.Title | default "Default Title" }}"; // Get title from Hugo
+    const characterPool = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
+    const scrambleUpdateInterval = 50; // ms between character changes
+    const scrambleDurationPerChar = 700; // ms each character scrambles
+    const scrambleStaggerDelay = 80; // ms delay between start of each char scramble
+    const movementStartDelay = 0; // ms after load before movement starts
+    const scrambleStartDelayAfterMovement = 0; // ms after movement starts before scrambling begins
+    const navTypingStartDelayAfterMovement = 300; // ms after movement starts before nav typing begins
+
+    // --- Setup Title Spans ---
+    const titleSpans = [];
+    if (titleH1 && targetTitle) {
+        titleH1.textContent = ''; // Clear H1
+        for (let i = 0; i < targetTitle.length; i++) {
+            const span = document.createElement('span');
+            span.className = 'char-slot';
+            // Use non-breaking space for layout, especially for actual spaces
+            span.innerHTML = '&nbsp;';
+            titleH1.appendChild(span);
+            titleSpans.push(span);
+        }
+    }
+
+    // --- Scramble Function ---
+    function scrambleCharacter(spanElement, targetChar, duration) {
+        let startTime = Date.now();
+        let intervalId = setInterval(() => {
+            const randomChar = characterPool[Math.floor(Math.random() * characterPool.length)];
+            spanElement.textContent = randomChar;
+            if (Date.now() - startTime >= duration) {
+                clearInterval(intervalId);
+                // Use innerHTML for spaces to ensure they render correctly
+                spanElement.innerHTML = (targetChar === ' ') ? '&nbsp;' : targetChar;
+            }
+        }, scrambleUpdateInterval);
+    }
+
+    // --- Prepare Nav Links for JS Typewriter (Existing Method) ---
     const navLinks = navMenu ? Array.from(navMenu.querySelectorAll('.nav-link-text')) : [];
     const linkData = navLinks.map(link => {
         const text = link.getAttribute('data-text');
         link.textContent = ''; // Clear initial text
         return { element: link, text: text, currentLength: 0 };
     });
-    let totalChars = linkData.reduce((sum, link) => sum + link.text.length, 0);
     let typedChars = 0;
     let currentLinkIndex = 0;
-    const typingSpeed = 40; // Milliseconds per character
+    const typingSpeed = 40; // Milliseconds per character for nav
 
-    // Ensure elements exist before proceeding
-    if (!homeContainer || !titleSection || !titleH1 || !navMenu || !twoColumnLayout || !profileImg || !aboutSection || !highlightsSection) {
-        console.error("Animation elements not found!");
-        // Fallback: Make everything visible immediately
-        if(titleH1) titleH1.classList.add('visible');
-        if(navMenu) {
-            navMenu.classList.add('visible');
-            // Restore text if fallback
-            linkData.forEach(data => data.element.textContent = data.text);
-        }
-        if(profileImg) profileImg.classList.add('visible');
-        if(aboutSection) aboutSection.classList.add('visible');
-        if(highlightsSection) highlightsSection.classList.add('visible');
-        if(twoColumnLayout) twoColumnLayout.classList.add('visible');
-        if(homeContainer) homeContainer.classList.add('layout-final');
-        if(titleSection) titleSection.classList.add('move-to-top');
-        return;
-    }
-
-    // --- Typewriter Function ---
+    // --- JS Typewriter Function for Nav ---
     function typeCharacter() {
         if (currentLinkIndex < linkData.length) {
             const currentData = linkData[currentLinkIndex];
             if (currentData.currentLength < currentData.text.length) {
-                // Add next character
                 currentData.element.textContent += currentData.text[currentData.currentLength];
                 currentData.currentLength++;
                 typedChars++;
-                // Schedule next character
                 setTimeout(typeCharacter, typingSpeed);
             } else {
-                // Move to next link
                 currentLinkIndex++;
-                // Add a slight pause between links if desired
-                // setTimeout(typeCharacter, typingSpeed * 2);
-                // Or continue immediately:
                 typeCharacter();
             }
         }
     }
 
+
+    // Ensure elements exist before proceeding (simplified fallback)
+    if (!homeContainer || !titleSection || !titleH1 || !navMenu || !twoColumnLayout || !profileImg || !aboutSection || !highlightsSection) {
+        console.error("Animation elements not found!");
+        if(titleH1) titleH1.textContent = targetTitle; // Show final title immediately
+        if(navMenu) { // Show nav immediately
+             navMenu.classList.add('visible');
+             linkData.forEach(data => data.element.textContent = data.text);
+        }
+        // Make other sections visible
+        if(twoColumnLayout) twoColumnLayout.style.opacity = 1;
+        if(profileImg) profileImg.classList.add('visible');
+        if(aboutSection) aboutSection.classList.add('visible');
+        if(highlightsSection) highlightsSection.classList.add('visible');
+        return;
+    }
+
+
     // --- Animation Sequence ---
 
-    // 1. Fade in Title & Start Move Up
+    // Define Glitch parameters earlier for use in Step 2
+    const glitchCharIndex = 3;           // Index of the character to change ('i' in "Artin")
+    const glitchWrongChar = 'e';         // The character to initially show incorrectly ('e')
+    const glitchCorrectChar = targetTitle[glitchCharIndex]; // The final correct char ('i')
+
+    // 1. Start Upward Movement after a delay
+    const movementStartTime = Date.now() + movementStartDelay;
     setTimeout(() => {
-        titleH1.classList.add('visible');
         titleSection.classList.add('move-to-top');
         homeContainer.classList.add('layout-final');
-    }, 100);
+    }, movementStartDelay);
 
-    // 2. Start Nav Menu Animation & Trigger Typewriter
-    setTimeout(() => {
-        navMenu.classList.add('visible'); // Start container fade-in/move-up
-        typeCharacter(); // Start typing effect
-    }, 300);
+    // 2. Start Staggered Title Scramble *after* movement begins
+    titleSpans.forEach((span, index) => {
+        const charStartTime = movementStartDelay + scrambleStartDelayAfterMovement + (index * scrambleStaggerDelay);
+        setTimeout(() => {
+            // Start the scramble to the CORRECT character
+            scrambleCharacter(span, targetTitle[index], scrambleDurationPerChar);
 
-    // 3. Adjust Layout Margin
+            // *** NEW: If this is the character to glitch, schedule the incorrect char display ***
+            if (index === glitchCharIndex) {
+                const incorrectCharDisplayTime = charStartTime + scrambleDurationPerChar + 10; // 10ms after scramble ends
+                setTimeout(() => {
+                    // Check if the span still exists (safety)
+                    if (titleSpans[glitchCharIndex]) {
+                         titleSpans[glitchCharIndex].textContent = glitchWrongChar;
+                    }
+                }, incorrectCharDisplayTime);
+            }
+        }, charStartTime);
+    });
+
+    // 3. Start Nav Fade/Type *after* movement begins
+    const navStartTime = movementStartDelay + navTypingStartDelayAfterMovement;
     setTimeout(() => {
+        navMenu.classList.add('visible');
+        typeCharacter();
+    }, navStartTime);
+
+    // 4. Make Two-Column Layout Visible (relative to movement start)
+    const layoutVisibleTime = movementStartDelay + 100; // Show shortly after movement starts
+     setTimeout(() => {
         twoColumnLayout.classList.add('visible');
-    }, 1000);
+    }, layoutVisibleTime);
 
-    // 4. Start Fade in Image, About, and Highlights Sections
+    // 5. Fade in Lower Content (After movement animation finishes)
+    const movementDuration = 700; // Matches CSS transform duration for .title-section
+    // Calculate based on actual movement start time
+    const contentFadeInTime = movementStartDelay + movementDuration + 0;
     setTimeout(() => {
         profileImg.classList.add('visible');
         aboutSection.classList.add('visible');
         highlightsSection.classList.add('visible');
-    }, 1600);
+    }, contentFadeInTime);
+
+    // 6. Glitch Correction after everything settles
+    const glitchCorrectionDelayAfterContent = 2000; // 1 second after content fades in
+    const cursorVisibleDuration = 1000; // How long cursor stays after wrong char
+    const deletePauseDuration = 250;   // Pause after deleting wrong char
+    const typePauseDuration = 350;     // Pause after typing correct char (before cursor disappears)
+
+    // Ensure the index is valid before setting timeout
+    if (glitchCharIndex >= 0 && glitchCharIndex < titleSpans.length && glitchCorrectChar) {
+        const glitchCorrectionStartTime = contentFadeInTime + glitchCorrectionDelayAfterContent;
+
+        setTimeout(() => {
+            const targetSpan = titleSpans[glitchCharIndex];
+            if (targetSpan) {
+                // --- Start Correction Sequence ---
+
+                // 1. Add Cursor next to wrong character ('e')
+                targetSpan.innerHTML = glitchWrongChar + '<span class="glitch-cursor"></span>';
+
+                // 2. Wait, then Delete wrong character ('e') (leaving cursor)
+                setTimeout(() => {
+                    targetSpan.innerHTML = '<span class="glitch-cursor"></span>'; // Just the cursor
+
+                    // 3. Wait, then Type correct character ('i') (with cursor)
+                    setTimeout(() => {
+                        // Use innerHTML for spaces
+                        const correctContent = (glitchCorrectChar === ' ') ? '&nbsp;' : glitchCorrectChar;
+                        targetSpan.innerHTML = correctContent + '<span class="glitch-cursor"></span>';
+
+                        // 4. Wait, then Remove cursor
+                        setTimeout(() => {
+                            targetSpan.innerHTML = correctContent; // Final correct character ('i')
+                        }, typePauseDuration);
+
+                    }, deletePauseDuration);
+
+                }, cursorVisibleDuration);
+            }
+        }, glitchCorrectionStartTime);
+    }
 
 
     // --- Image Click Handler (Keep existing logic) ---

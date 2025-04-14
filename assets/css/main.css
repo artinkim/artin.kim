@@ -431,23 +431,69 @@ blockquote p {
     font-size: 6rem;
     margin: 0;
     margin-bottom: 0.5rem;
-    opacity: 0;
-    transform: translateY(50px);
-    transition: opacity 0.6s ease-out, transform 1.2s ease-out;
+    /* Remove initial opacity, transform, transition */
+    /* Ensure it takes up space */
+    min-height: 6rem; /* Or match line-height */
+    /* Prevent text selection during scramble */
+    user-select: none;
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+ */
 }
 
 .title-section nav.menu {
     justify-content: center;
     font-size: 1.4rem;
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* Start hidden */
+    transform: translateY(50px); /* Start slightly lower */
+    /* Transition opacity and transform */
     transition: opacity 0.6s ease-out 0.2s, transform 0.8s ease-out 0.2s;
 }
 
-.title-section h1.visible,
+/* Add this rule back to make the nav visible */
 .title-section nav.menu.visible {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* Fade in */
+    transform: translateY(0); /* Move up to final position */
+}
+
+/* Style for the character containers */
+.char-slot {
+    display: inline-block;
+    text-align: center;
+    /* Adjust width slightly if needed for different characters */
+    min-width: 0.8ch; /* Approx width of one character */
+    /* Preserve space */
+    white-space: pre;
+    /* Add relative positioning to contain the cursor */
+    position: relative;
+}
+
+/* Style for the temporary glitch cursor */
+.glitch-cursor {
+  display: inline-block; /* Or block if needed */
+  background-color: currentColor; /* Use the text color */
+  width: 0.1ch; /* Adjust as needed */
+  height: 1em; /* Match font height */
+  margin-left: 1px; /* Space after character */
+  vertical-align: middle; /* Align with text */
+  /* Blinking animation */
+  animation: blink 1s step-end infinite;
+  /* Position absolutely if needed, relative to char-slot */
+  /* position: absolute; */
+  /* right: -3px; */ /* Adjust positioning */
+  /* top: 0; */
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* NEW RULE: When the PARENT section gets 'move-to-top', THEN animate the h1's transform */
+.title-section.move-to-top h1.visible {
+    transform: translateY(0); /* Set the target position */
+    /* Add the transform transition specifically here */
+    transition: opacity 0.6s ease-out, transform 0.8s ease-out;
 }
 
 .two-column-layout {
@@ -581,6 +627,7 @@ blockquote p {
     opacity: 1;
     /* transform: translateY(0); */
   }
+
 }
 
 @media only screen and (max-width: 768px) {
