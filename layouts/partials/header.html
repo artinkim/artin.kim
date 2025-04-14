@@ -1,42 +1,25 @@
 {{ $currentPage := . }} {{ with site.Menus.main }}
 <nav class="menu inline">
-    <div class="internal">
-        <div class="menu-item">
-            <p class="menu-item-aux">></p>
-            <a class="inactive" href="/">home</a>
-            <p class="menu-item-aux"><</p>
-        </div>
+    <div class="nav-left">{{ $currentPage.Name }}</div>
 
+    <div class="nav-right">
+        <div class="menu-item">
+            {{ if or $currentPage.Params.unlisted (eq $currentPage.Section "")
+            }}
+            <a class="inactive unlisted">unlisted</a>
+            {{ end }}
+        </div>
         {{ range . }}
         <div class="menu-item">
             {{ if eq $currentPage.Section .Name }}
-            <p class="menu-item-aux active">></p>
             <a class="active {{ .Name }}" href="{{ .URL }}">{{ .Name }}</a>
-            <p class="menu-item-aux active"><</p>
             {{ else }}
-            <p class="menu-item-aux">></p>
             <a class="inactive {{ .Name }}" href="{{ .URL }}">{{ .Name }}</a>
-            <p class="menu-item-aux"><</p>
             {{ end }}
         </div>
         {{ end }}
         <div class="menu-item">
-            {{ if or $currentPage.Params.unlisted (eq $currentPage.Section "")
-            }}
-            <p class="menu-item-aux">></p>
-            <a class="inactive unlisted">unlisted</a>
-            <p class="menu-item-aux"><</p>
-            {{ end }}
+            <a class="inactive" href="/">Me</a>
         </div>
-    </div>
-
-    <div class="external">
-        <div class="menu-item">
-            <p class="menu-item-aux">></p>
-            <a class="active art" href="https://art.adinack.dev">art</a>
-            <embed class="icon" src="/icons/arrow.up.right.svg" />
-            <p class="menu-item-aux"><</p>
-        </div>
-    </div>
 </nav>
 {{ end }}

@@ -1,29 +1,61 @@
 {{ define "main" }}
-<div class="splash animate">
-    <embed class="logo" src="/icons/logo.svg" />
-    {{ with site.Menus.main }}
-    <nav class="menu animate">
-        <div class="internal">
+<div class="home-container animate">
+    <div class="splash">
+        <h1 class="primary-anim">{{ site.Title }}</h1>
+        {{ with site.Menus.main }}
+        <nav class="menu inline animate">
             {{ range . }}
             <div class="menu-item">
-                <p class="menu-item-aux">></p>
-                <a class="inactive {{ .Name }}" href="{{ .URL }}"
-                    >{{ .Name }}</a
-                >
-                <p class="menu-item-aux"><</p>
+                <a class="inactive {{ .Name }}" href="{{ .URL }}">{{ .Name }}</a>
             </div>
             {{ end }}
-        </div>
+        </nav>
+        {{ end }}
+    </div>
 
-        <div class="external">
-            <div class="menu-item">
-                <p class="menu-item-aux">></p>
-                <a class="active art" href="https://art.adinack.dev">art</a>
-                <embed class="icon" src="/icons/arrow.up.right.svg" />
-                <p class="menu-item-aux"><</p>
+    <div class="two-column-layout">
+        <section class="about-section">
+            <h2>About Me</h2>
+            <p>
+            I'm a software engineer and researcher interested in computer graphics,
+            programming languages, and systems. I'm currently working on real-time
+            rendering techniques and compiler optimizations. In my free time, I enjoy
+            contributing to open source projects and exploring new programming paradigms.
+            </p>
+        </section>
+        
+        <section class="highlights-section">
+            <h2>Highlights</h2>
+            <div class="highlights-grid">
+                <!-- Projects Highlight -->
+                <div class="highlight-card">
+                    <h3>Projects</h3>
+                    <p>Featured work from my portfolio</p>
+                    <a href="/projects" class="highlight-link">View Projects →</a>
+                </div>
+                
+                <!-- Blog Highlight -->
+                <div class="highlight-card">
+                    <h3>Blog</h3>
+                    <p>Recent thoughts and technical articles</p>
+                    <a href="/blog" class="highlight-link">Read Blog →</a>
+                </div>
+                
+                <!-- Publications Highlight -->
+                <div class="highlight-card">
+                    <h3>Publications</h3>
+                    <p>Academic and research papers</p>
+                    <a href="/publications" class="highlight-link">See Publications →</a>
+                </div>
+                
+                <!-- Videos Highlight -->
+                <div class="highlight-card">
+                    <h3>Videos</h3>
+                    <p>Presentations and tutorials</p>
+                    <a href="/videos" class="highlight-link">Watch Videos →</a>
+                </div>
             </div>
-        </div>
-    </nav>
-    {{ end }}
+        </section>
+    </div>
 </div>
 {{ end }}

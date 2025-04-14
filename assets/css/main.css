@@ -1,12 +1,16 @@
 :root {
     --content-width: min(50rem, calc(100vw - 4.6rem));
     --animation: cubic-bezier(0, 1, 1, 1);
+    --primary: #171219;
+    --accent: #f95738;
+    --accent2: #2274a5;
+    --background: #F4F1DE;
 }
 
 html {
-    font-family: "SF Pro Text";
-    background-color: #111111;
-    color: white;
+    font-family: "IBM Plex Sans";
+    background-color: var(--background);
+    color: var(--primary);
 }
 
 h1 {
@@ -24,7 +28,7 @@ time {
 }
 
 a {
-    color: #5070ff;
+    color: var(--accent);
 }
 
 .post {
@@ -46,7 +50,7 @@ main {
     margin: 0;
     flex-direction: column;
     min-height: calc(100vh);
-    color: #f0f0f0;
+    color: #171219;
     -webkit-text-size-adjust: 100%;
     visibility: hidden;
 }
@@ -145,57 +149,42 @@ pre code {
     justify-content: space-between;
 }
 
-.menu .external,
-.menu .internal {
+.menu .nav-left {
+    font-weight: bold;
+}
+.menu .nav-left,
+.menu .nav-right {
     padding: 1rem;
     display: flex;
     cursor: pointer;
 }
 
-.external {
-    justify-content: center;
-}
-
 .menu-item a {
     text-decoration: none;
     transition: all 200ms var(--animation);
-    margin: 0;
-    font-family: "SF Mono";
+    margin: 0.75rem;
+    
+    /* font-family: "IBM Plex Mono"; */
 }
 
 .menu-item .inactive {
     color: #505050;
 }
 
-.menu-item-aux.active {
-    opacity: 1;
-}
-
-.menu-item-aux {
-    margin: 0;
-    display: inline;
-    color: #505050;
-    opacity: 0;
-    font-family: "SF Mono";
-}
-
 .menu-item:hover a.inactive {
-    color: white;
-}
-
-.menu-item:hover .menu-item-aux {
-    opacity: 1;
-    color: #505050;
+    color: var(--accent);
 }
 
 header {
     position: sticky;
     top: 0;
     z-index: 1;
-    background-color: #111111d0;
+    background-color: #F4F1DE90;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     width: 100%;
+    
+    border-bottom: 0.05rem solid var(--primary);
 }
 
 .post-neck {
@@ -264,19 +253,8 @@ header {
 }
 
 .menu-item a.active {
-    color: white;
-}
-
-.menu-item:hover a.inactive.projects,
-.menu-item a.active.projects,
-.post-listing:hover .post-name.projects {
-    color: #6060ff;
-}
-
-.menu-item:hover a.inactive.blog,
-.menu-item a.active.blog,
-.post-listing:hover .post-name.blog {
-    color: #a0ffa0;
+    color: var(--primary);
+    font-weight: bold;
 }
 
 .menu-item a.inactive.unlisted,
@@ -347,7 +325,7 @@ header {
 .under-construction {
     margin: auto;
     color: red;
-    font-family: "SF Mono";
+    font-family: "IBM Plex Mono";
 }
 
 blockquote p {
@@ -358,7 +336,7 @@ blockquote p {
 .four-o-four {
     margin: auto;
     color: red;
-    font-family: "SF Mono";
+    font-family: "IBM Plex Mono";
     text-align: center;
 }
 
@@ -421,5 +399,115 @@ blockquote p {
         flex-direction: column;
         gap: 0.5rem;
         padding: 0.5rem;
+    }
+}
+
+/* Home page specific styles */
+.home-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 95%;
+    margin: 0 auto;
+    padding: 1rem 0;
+}
+
+.splash {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.splash h1 {
+    margin-bottom: 0.5rem;
+}
+
+.splash .menu.inline {
+    justify-content: center;
+    margin: 0.5rem 0;
+}
+
+.splash .menu-item {
+    margin: 0 0.5rem;
+}
+
+.two-column-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.about-section, .highlights-section {
+    overflow-y: auto;
+    padding: 0 1rem;
+}
+
+.about-section h2, .highlights-section h2 {
+    margin-top: 0;
+    font-size: 1.5rem;
+}
+
+.about-section p {
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.highlights-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.highlight-card {
+    background-color: #ffffff10;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    transition: transform 0.2s var(--animation, ease);
+    border: 1px solid var(--primary, #e0e0e0);
+}
+
+.highlight-card:hover {
+    transform: translateY(-3px);
+}
+
+.highlight-card h3 {
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+    font-size: 1.1rem;
+    color: var(--accent, #83a598);
+}
+
+.highlight-card p {
+    margin: 0.25rem 0;
+    font-size: 0.85rem;
+}
+
+.highlight-link {
+    display: inline-block;
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-decoration: none;
+    color: var(--primary, #e0e0e0);
+}
+
+.highlight-link:hover {
+    color: var(--accent, #83a598);
+}
+
+@media only screen and (max-width: 768px) {
+    .two-column-layout {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .home-container {
+        height: auto;
+    }
+    
+    .highlights-grid {
+        grid-template-columns: 1fr;
     }
 }

@@ -1,62 +1,62 @@
 @font-face {
-    font-family: "SF Pro Text";
-    src: url("/font/SF-Pro-Text-Regular.otf") format("opentype");
+    font-family: "IBM Plex Sans";
+    src: url("/font/IBMPlexSans-Regular.ttf") format("truetype");
     font-style: normal;
     font-weight: 400;
     text-rendering: optimizeLegibility;
 }
 
 @font-face {
-    font-family: "SF Pro Text";
-    src: url("/font/SF-Pro-Text-RegularItalic.otf") format("opentype");
+    font-family: "IBM Plex Sans";
+    src: url("/font/IBMPlexSans-Italic.ttf") format("truetype");
     font-style: italic;
     font-weight: 400;
     text-rendering: optimizeLegibility;
 }
 
 @font-face {
-    font-family: "SF Pro Text";
-    src: url("/font/SF-Pro-Text-Bold.otf") format("opentype");
+    font-family: "IBM Plex Sans";
+    src: url("/font/IBMPlexSans-Bold.ttf") format("truetype");
     font-style: normal;
     font-weight: 700;
     text-rendering: optimizeLegibility;
 }
 
 @font-face {
-    font-family: "SF Pro Text";
-    src: url("/font/SF-Pro-Text-BoldItalic.otf") format("opentype");
+    font-family: "IBM Plex Sans";
+    src: url("/font/IBMPlexSans-BoldItalic.ttf") format("truetype");
     font-style: italic;
     font-weight: 700;
     text-rendering: optimizeLegibility;
 }
 
 @font-face {
-    font-family: "SF Mono";
-    src: url("/font/SF-Mono-Regular.otf") format("opentype");
+    font-family: "IBM Plex Mono";
+    src: url("/font/IBMPlexMono-Regular.ttf") format("truetype");
     font-style: normal;
     font-weight: 400;
     text-rendering: optimizeLegibility;
 }
 
 @font-face {
-    font-family: "SF Mono";
-    src: url("/font/SF-Mono-RegularItalic.otf") format("opentype");
+    font-family: "IBM Plex Mono";
+    src: url("/font/IBMPlexMono-Italic.ttf") format("truetype");
     font-style: italic;
     font-weight: 400;
     text-rendering: optimizeLegibility;
 }
 
 @font-face {
-    font-family: "SF Mono";
-    src: url("/font/SF-Mono-Bold.otf") format("opentype");
+    font-family: "IBM Plex Mono";
+    src: url("/font/IBMPlexMono-Bold.ttf") format("truetype");
     font-style: normal;
     font-weight: 700;
     text-rendering: optimizeLegibility;
 }
 
 @font-face {
-    font-family: "SF Mono";
-    src: url("/font/SF-Mono-BoldItalic.otf") format("opentype");
+    font-family: "IBM Plex Mono";
+    src: url("/font/IBMPlexMono-BoldItalic.ttf") format("truetype");
     font-style: italic;
     font-weight: 700;
     text-rendering: optimizeLegibility;
