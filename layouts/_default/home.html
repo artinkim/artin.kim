@@ -1,8 +1,7 @@
 {{ define "main" }}
 <div class="home-container animate">
-
-    <!-- Splash Section: Title and Main Navigation -->
-    <div class="splash">
+    <!-- Title Section at Top -->
+    <div class="title-section">
         <h1 class="primary-anim">{{ site.Title }}</h1>
         {{ with site.Menus.main }}
         <nav class="menu inline animate">
@@ -15,21 +14,23 @@
         {{ end }}
     </div>
 
-    <!-- Main Content Area: Two Columns -->
+    <!-- Two Column Layout Below -->
     <div class="two-column-layout">
-
         <!-- About Me Section -->
         <section class="about-section">
-            
-            <img src="/img/artin_headshot.jpg" alt="Profile picture" style="width: 100%; max-width: 200px; border-radius: 0.5rem;">
-            <div>
-                <h2>About Me</h2>
-                <p>
-                I'm a software engineer and researcher interested in computer graphics,
-                programming languages, and systems. I'm currently working on real-time
-                rendering techniques and compiler optimizations. In my free time, I enjoy
-                contributing to open source projects and exploring new programming paradigms.
-                </p>
+            <h2>About Me</h2>
+            <div class="about-content">
+                <div style="width: 30%; display: flex; justify-content: center; align-items: center;">
+                    <img src="/img/artin_headshot.jpg" alt="Profile picture" style="width: 100%; max-width: 150px; border-radius: 0.5rem;">
+                </div>
+                <div style="width: 70%;">
+                    <p>
+                    I'm a software engineer and researcher interested in computer graphics,
+                    programming languages, and systems. I'm currently working on real-time
+                    rendering techniques and compiler optimizations. In my free time, I enjoy
+                    contributing to open source projects.
+                    </p>
+                </div>
             </div>
         </section>
         
@@ -40,34 +41,76 @@
                 <!-- Projects Highlight -->
                 <div class="highlight-card">
                     <div>
-                        <h3>Projects</h3>
-                        <p>Featured work from my portfolio</p>
+                        <h3>Project: Real-Time Ray Tracer</h3>
+                        <p>A path tracing engine built with Vulkan.</p>
                     </div>
-                    <a href="/projects" class="highlight-link">View Projects →</a>
+                    <a href="/projects/real-time-ray-tracer/" class="highlight-link">View Project →</a>
                 </div>
                 
-                <!-- Blog Highlight -->
+                <!-- Highlighted Blog Post -->
                 <div class="highlight-card">
-                    <h3>Blog</h3>
-                    <p>Recent thoughts and technical articles</p>
-                    <a href="/blog" class="highlight-link">Read Blog →</a>
+                    <div>
+                        <h3>Blog: Optimizing Shader Performance</h3>
+                        <p>Tips for writing efficient GLSL code.</p>
+                    </div>
+                    <a href="/blog/optimizing-shader-performance/" class="highlight-link">Read Post →</a>
                 </div>
                 
-                <!-- Publications Highlight -->
+                <!-- Highlighted Publication -->
                 <div class="highlight-card">
-                    <h3>Publications</h3>
-                    <p>Academic and research papers</p>
-                    <a href="/publications" class="highlight-link">See Publications →</a>
+                    <div>
+                        <h3>Publication: Novel GI Technique</h3>
+                        <p>Published in ACM Transactions on Graphics.</p>
+                    </div>
+                    <a href="/publications/novel-gi-technique/" class="highlight-link">See Publication →</a>
                 </div>
                 
-                <!-- Videos Highlight -->
+                <!-- Highlighted Video -->
                 <div class="highlight-card">
-                    <h3>Videos</h3>
-                    <p>Presentations and tutorials</p>
-                    <a href="/videos" class="highlight-link">Watch Videos →</a>
+                    <div>
+                        <h3>Video: Intro to Compute Shaders</h3>
+                        <p>A tutorial on leveraging GPU compute.</p>
+                    </div>
+                    <a href="/videos/intro-to-compute-shaders/" class="highlight-link">Watch Video →</a>
                 </div>
             </div>
         </section>
     </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const profileImg = document.querySelector('.about-content img');
+    
+    profileImg.addEventListener('click', function() {
+      // Create a modal or lightbox effect
+      const modal = document.createElement('div');
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.left = '0';
+      modal.style.width = '100%';
+      modal.style.height = '100%';
+      modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+      modal.style.display = 'flex';
+      modal.style.justifyContent = 'center';
+      modal.style.alignItems = 'center';
+      modal.style.zIndex = '1000';
+      
+      // Create the large image
+      const largeImg = document.createElement('img');
+      largeImg.src = profileImg.src;
+      largeImg.style.maxHeight = '80vh';
+      largeImg.style.maxWidth = '80vw';
+      largeImg.style.borderRadius = '0.5rem';
+      
+      // Close modal when clicked
+      modal.addEventListener('click', function() {
+        document.body.removeChild(modal);
+      });
+      
+      modal.appendChild(largeImg);
+      document.body.appendChild(modal);
+    });
+  });
+</script>
 {{ end }}

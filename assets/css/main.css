@@ -125,12 +125,6 @@ pre code {
     margin: 0 1rem 0 1rem;
 }
 
-.splash {
-    align-self: center;
-    margin: auto;
-    grid-row: 2;
-}
-
 .logo {
     width: 10rem;
     display: block;
@@ -406,12 +400,15 @@ blockquote p {
 .home-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    /* Consider adjusting height if 100vh causes issues with scrolling */
+    /* height: 100vh; */ 
     max-width: 95%;
     margin: 0 auto;
     padding: 1rem 0;
 }
 
+/* Remove old splash styles */
+/*
 .splash {
     text-align: center;
     margin-bottom: 1rem;
@@ -431,40 +428,98 @@ blockquote p {
 .splash .menu-item {
     margin: 0 0.5rem;
 }
+*/
+
+.title-section {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.title-section h1 {
+    font-size: 6rem;
+    margin: 0;
+    margin-bottom: 0.5rem;
+}
+
+.title-section .menu.inline {
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+.title-section .menu-item {
+    margin: 0 1rem;
+}
 
 .two-column-layout {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr 1.5fr;
     gap: 2rem;
-    flex-grow: 1;
-    overflow: hidden;
+    margin-top: 2rem;
 }
 
+/* Style the new right column container */
+.right-column-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Adjust moved H1 */
+.right-column-content h1 {
+    font-size: 5rem;
+    margin: 0;
+    text-align: center;
+    margin-bottom: -0.5rem;
+}
+
+/* Adjust moved Nav */
+.right-column-content .menu.inline {
+    justify-content: center;
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.right-column-content .menu-item {
+    margin: 0 1rem;
+}
+
+/* Ensure sections can scroll if needed */
 .about-section, .highlights-section {
     overflow-y: auto;
-    padding: 0 1rem;
+    padding: 1rem; /* Keep padding consistent */
+    /* Consider adding max-height if sections become too tall */
+    /* max-height: calc(100vh - 4rem); */ /* Example: Adjust based on header/footer */
 }
 
+.highlights-section {
+    padding: 0 1rem; /* Reset padding if needed, or keep parent's */
+    border: none; /* Remove border if it was added previously */
+    background: none; /* Remove background if added previously */
+}
+
+/* This is the primary rule for both section headings */
 .about-section h2, .highlights-section h2 {
     margin-top: 0;
-    font-size: 1.8rem;
+    font-size: 2.4rem; /* Make both headings the same size */
+    margin-bottom: 1rem; /* Add consistent bottom margin for spacing */
 }
 
+/* Adjust paragraph margin in About section */
 .about-section p {
-    margin-top: 0.5rem;
-    font-size: 1.3rem;
+    margin-top: 0; /* Remove top margin, spacing is handled by heading's bottom margin */
+    font-size: 1.2rem; /* Keep desired font size */
     line-height: 1.6;
 }
 
 .highlights-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 0.75rem; /* Reduced from 1rem */
 }
 
 .highlight-card {
     background-color: #ffffff10;
-    padding: 0.75rem;
+    padding: 0.5rem; /* Reduced from 0.75rem */
     border-radius: 0.5rem;
     transition: transform 0.2s var(--animation, ease);
     border: 1px solid var(--primary, #e0e0e0);
@@ -503,51 +558,91 @@ blockquote p {
 }
 
 @media only screen and (max-width: 768px) {
+    .title-section h1 {
+        font-size: 3.5rem;
+    }
+    
+    .title-section {
+        margin-bottom: 2rem;
+    }
+
     .two-column-layout {
         grid-template-columns: 1fr;
-        gap: 1rem;
     }
-    
+
     .home-container {
-        height: auto;
+        height: auto; /* Allow height to adjust */
     }
     
+    /* Adjust moved H1 for mobile */
+    .right-column-content h1 {
+        font-size: 3rem; 
+    }
+
+    /* Adjust moved Nav for mobile */
+    .right-column-content .menu.inline {
+        font-size: 1rem;
+        flex-wrap: wrap; /* Allow menu items to wrap */
+    }
+
     .highlights-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Stack highlight cards */
     }
 
     .about-section {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
+        /* Keep side-by-side layout or stack if preferred */
+        /* flex-direction: column; */
+        /* align-items: center; */
+        /* text-align: center; */
     }
 
     .about-section img {
-        max-width: 150px;
-        margin-bottom: 1rem;
+        /* Adjust image size for mobile if needed */
+        max-width: 120px; 
+        /* margin-bottom: 1rem; */ /* Add margin if stacking */
     }
 }
 
 .about-section {
-    display: flex;
-    align-items: flex-start;
-    gap: 1.5rem;
-    
-    padding: 1rem; 
-    border: 1px solid var(--primary); 
-    border-radius: 0.5rem; 
-    background-color: #ffffff10;
-
-    overflow-y: auto;
+    padding: 0 0.5rem; /* Changed from 0.5rem to remove top/bottom padding */
+    /* border: 1px solid var(--primary); */ /* Removed border */
+    border-radius: 0.5rem;
+    /* background-color: #ffffff10; */ /* Removed background */
 }
 
-.about-section img {
-    width: 100%; 
-    max-width: 200px; 
+.about-content {
+    display: flex;
+    align-items: center; /* Keep vertical alignment */
+    gap: 1rem;
+}
+
+/* Softer animation for profile image */
+@keyframes zoomInFace {
+    0% {
+        transform: scale(0.85);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.about-content img {
+    width: 100%;
+    max-width: 150px;
     height: auto;
     border-radius: 0.5rem;
-    flex-shrink: 0;
+    animation: zoomInFace 1s ease-out forwards;
+    transform-origin: center 40%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: pointer; /* Show pointer cursor to indicate clickable */
+    transition: all 0.2s ease;
 }
 
-.about-section > div {
+/* Subtle hover effect */
+.about-content img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
+
