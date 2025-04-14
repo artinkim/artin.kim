@@ -452,9 +452,10 @@ blockquote p {
 
 .two-column-layout {
     display: grid;
-    grid-template-columns: 1fr 1.5fr;
+    grid-template-columns: 1fr 2.5fr;
     gap: 2rem;
     margin-top: 2rem;
+    position: relative; /* Ensure this is relative for absolute children */
 }
 
 /* Style the new right column container */
@@ -514,7 +515,8 @@ blockquote p {
 .highlights-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem; /* Reduced from 1rem */
+    /* repeat(2, 1fr); */
+    gap: 1rem;
 }
 
 .highlight-card {
@@ -604,16 +606,49 @@ blockquote p {
 }
 
 .about-section {
-    padding: 0 0.5rem; /* Changed from 0.5rem to remove top/bottom padding */
-    /* border: 1px solid var(--primary); */ /* Removed border */
+    /* position: relative; */
+    padding: 0 0.5rem; /* Restore normal padding */
+    /* margin-top: 6rem; */ /* REMOVE this margin */
     border-radius: 0.5rem;
-    /* background-color: #ffffff10; */ /* Removed background */
 }
 
-.about-content {
-    display: flex;
-    align-items: center; /* Keep vertical alignment */
-    gap: 1rem;
+/* Remove rules for old layout containers */
+/*
+.about-layout { ... }
+.about-image-container { ... }
+.about-text-content { ... }
+*/
+
+/* Position the image absolutely */
+/* Ensure this rule is completely removed if it still exists */
+/*
+.about-section img {
+    position: absolute;
+    top: -4rem;
+    left: 0.5rem;
+    ...
+}
+*/
+
+/* Keep hover effect */
+.about-section img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Ensure headings are styled correctly */
+.about-section h2, .highlights-section h2 {
+    margin-top: 0; /* Reset margin */
+    font-size: 2.4rem;
+    margin-bottom: 0.5rem; /* Space between title and paragraph */
+}
+
+/* Ensure paragraph is styled correctly */
+.about-section p {
+    margin-top: 0;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    text-align: left;
 }
 
 /* Softer animation for profile image */
@@ -628,20 +663,27 @@ blockquote p {
     }
 }
 
-.about-content img {
+/* Adjust the 'top' value for the absolutely positioned image */
+.profile-image-absolute {
+    position: absolute;
+    /* Adjust top: Make this value more negative to move the image higher.
+       Try values like -8rem, -9rem, etc., and check in browser. */
+    top: -12rem; /* Made value more negative (was -8rem) */
+    left: 0; /* Align with the start of the grid container */
     width: 100%;
-    max-width: 150px;
+    max-width: 175px; /* Keep desired size */
     height: auto;
     border-radius: 0.5rem;
     animation: zoomInFace 1s ease-out forwards;
     transform-origin: center 40%;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    cursor: pointer; /* Show pointer cursor to indicate clickable */
+    cursor: pointer;
     transition: all 0.2s ease;
+    z-index: -10; /* High z-index to ensure it's above grid content */
 }
 
-/* Subtle hover effect */
-.about-content img:hover {
+/* Keep hover effect */
+.profile-image-absolute:hover {
     transform: scale(1.05);
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
