@@ -419,11 +419,13 @@ blockquote p {
 
 .splash h1 {
     margin-bottom: 0.5rem;
+    font-size: 6rem;
 }
 
 .splash .menu.inline {
     justify-content: center;
     margin: 0.5rem 0;
+    font-size: 1.5rem;
 }
 
 .splash .menu-item {
@@ -432,7 +434,7 @@ blockquote p {
 
 .two-column-layout {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 2fr;
     gap: 2rem;
     flex-grow: 1;
     overflow: hidden;
@@ -445,13 +447,13 @@ blockquote p {
 
 .about-section h2, .highlights-section h2 {
     margin-top: 0;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
 }
 
 .about-section p {
     margin-top: 0.5rem;
-    font-size: 0.95rem;
-    line-height: 1.4;
+    font-size: 1.3rem;
+    line-height: 1.6;
 }
 
 .highlights-grid {
@@ -466,6 +468,9 @@ blockquote p {
     border-radius: 0.5rem;
     transition: transform 0.2s var(--animation, ease);
     border: 1px solid var(--primary, #e0e0e0);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .highlight-card:hover {
@@ -475,19 +480,19 @@ blockquote p {
 .highlight-card h3 {
     margin-top: 0;
     margin-bottom: 0.25rem;
-    font-size: 1.1rem;
+    font-size: 1.6rem;
     color: var(--accent, #83a598);
 }
 
 .highlight-card p {
     margin: 0.25rem 0;
-    font-size: 0.85rem;
+    font-size: 1.1rem;
 }
 
 .highlight-link {
     display: inline-block;
     margin-top: 0.25rem;
-    font-size: 0.85rem;
+    font-size: 1.1rem;
     font-weight: bold;
     text-decoration: none;
     color: var(--primary, #e0e0e0);
@@ -510,4 +515,39 @@ blockquote p {
     .highlights-grid {
         grid-template-columns: 1fr;
     }
+
+    .about-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .about-section img {
+        max-width: 150px;
+        margin-bottom: 1rem;
+    }
+}
+
+.about-section {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    
+    padding: 1rem; 
+    border: 1px solid var(--primary); 
+    border-radius: 0.5rem; 
+    background-color: #ffffff10;
+
+    overflow-y: auto;
+}
+
+.about-section img {
+    width: 100%; 
+    max-width: 200px; 
+    height: auto;
+    border-radius: 0.5rem;
+    flex-shrink: 0;
+}
+
+.about-section > div {
 }

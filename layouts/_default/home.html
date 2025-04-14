@@ -1,5 +1,7 @@
 {{ define "main" }}
 <div class="home-container animate">
+
+    <!-- Splash Section: Title and Main Navigation -->
     <div class="splash">
         <h1 class="primary-anim">{{ site.Title }}</h1>
         {{ with site.Menus.main }}
@@ -13,24 +15,34 @@
         {{ end }}
     </div>
 
+    <!-- Main Content Area: Two Columns -->
     <div class="two-column-layout">
+
+        <!-- About Me Section -->
         <section class="about-section">
-            <h2>About Me</h2>
-            <p>
-            I'm a software engineer and researcher interested in computer graphics,
-            programming languages, and systems. I'm currently working on real-time
-            rendering techniques and compiler optimizations. In my free time, I enjoy
-            contributing to open source projects and exploring new programming paradigms.
-            </p>
+            
+            <img src="/img/artin_headshot.jpg" alt="Profile picture" style="width: 100%; max-width: 200px; border-radius: 0.5rem;">
+            <div>
+                <h2>About Me</h2>
+                <p>
+                I'm a software engineer and researcher interested in computer graphics,
+                programming languages, and systems. I'm currently working on real-time
+                rendering techniques and compiler optimizations. In my free time, I enjoy
+                contributing to open source projects and exploring new programming paradigms.
+                </p>
+            </div>
         </section>
         
+        <!-- Highlights Section -->
         <section class="highlights-section">
             <h2>Highlights</h2>
             <div class="highlights-grid">
                 <!-- Projects Highlight -->
                 <div class="highlight-card">
-                    <h3>Projects</h3>
-                    <p>Featured work from my portfolio</p>
+                    <div>
+                        <h3>Projects</h3>
+                        <p>Featured work from my portfolio</p>
+                    </div>
                     <a href="/projects" class="highlight-link">View Projects →</a>
                 </div>
                 
