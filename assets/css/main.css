@@ -11,6 +11,7 @@ html {
     font-family: "IBM Plex Sans";
     background-color: var(--background);
     color: var(--primary);
+    font-size: 17.6px; /* Set base font size (16px * 1.1 = 17.6px) */
 }
 
 h1 {
@@ -52,7 +53,6 @@ main {
     min-height: calc(100vh);
     color: #171219;
     -webkit-text-size-adjust: 100%;
-    visibility: hidden;
 }
 
 footer {
@@ -400,38 +400,30 @@ blockquote p {
 .home-container {
     display: flex;
     flex-direction: column;
-    /* Consider adjusting height if 100vh causes issues with scrolling */
-    /* height: 100vh; */ 
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
     max-width: 95%;
     margin: 0 auto;
     padding: 1rem 0;
+    transition: justify-content 1.2s ease-out;
 }
 
-/* Remove old splash styles */
-/*
-.splash {
-    text-align: center;
-    margin-bottom: 1rem;
+.home-container.layout-final {
+    justify-content: flex-start;
+    min-height: auto;
 }
-
-.splash h1 {
-    margin-bottom: 0.5rem;
-    font-size: 6rem;
-}
-
-.splash .menu.inline {
-    justify-content: center;
-    margin: 0.5rem 0;
-    font-size: 1.5rem;
-}
-
-.splash .menu-item {
-    margin: 0 0.5rem;
-}
-*/
 
 .title-section {
     text-align: center;
+    width: 100%;
+    opacity: 1;
+    transform: translateY(0);
+    transition: transform 0.8s ease-out, margin-bottom 0.8s ease-out;
+}
+
+.title-section.move-to-top {
+    transform: translateY(-35vh);
     margin-bottom: 1rem;
 }
 
@@ -439,33 +431,43 @@ blockquote p {
     font-size: 6rem;
     margin: 0;
     margin-bottom: 0.5rem;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: opacity 0.6s ease-out, transform 1.2s ease-out;
 }
 
-.title-section .menu.inline {
+.title-section nav.menu {
     justify-content: center;
     font-size: 1.4rem;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: opacity 0.6s ease-out 0.2s, transform 0.8s ease-out 0.2s;
 }
 
-.title-section .menu-item {
-    margin: 0 1rem;
+.title-section h1.visible,
+.title-section nav.menu.visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .two-column-layout {
     display: grid;
     grid-template-columns: 1fr 2.5fr;
     gap: 2rem;
-    margin-top: 2rem;
-    position: relative; /* Ensure this is relative for absolute children */
+    position: relative;
+    width: 100%;
 }
 
-/* Style the new right column container */
+.two-column-layout.visible {
+    margin-top: 2rem;
+}
+
 .right-column-content {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-/* Adjust moved H1 */
 .right-column-content h1 {
     font-size: 5rem;
     margin: 0;
@@ -473,7 +475,6 @@ blockquote p {
     margin-bottom: -0.5rem;
 }
 
-/* Adjust moved Nav */
 .right-column-content .menu.inline {
     justify-content: center;
     margin: 0;
@@ -484,44 +485,48 @@ blockquote p {
     margin: 0 1rem;
 }
 
-/* Ensure sections can scroll if needed */
 .about-section, .highlights-section {
-    overflow-y: auto;
-    padding: 1rem; /* Keep padding consistent */
-    /* Consider adding max-height if sections become too tall */
-    /* max-height: calc(100vh - 4rem); */ /* Example: Adjust based on header/footer */
+    padding: 1rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+    visibility: hidden;
+}
+
+.about-section.visible,
+.highlights-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
 }
 
 .highlights-section {
-    padding: 0 1rem; /* Reset padding if needed, or keep parent's */
-    border: none; /* Remove border if it was added previously */
-    background: none; /* Remove background if added previously */
+    padding: 0 1rem;
+    border: none;
+    background: none;
 }
 
-/* This is the primary rule for both section headings */
 .about-section h2, .highlights-section h2 {
     margin-top: 0;
-    font-size: 2.4rem; /* Make both headings the same size */
-    margin-bottom: 1rem; /* Add consistent bottom margin for spacing */
+    font-size: 2.4rem;
+    margin-bottom: 1rem;
 }
 
-/* Adjust paragraph margin in About section */
 .about-section p {
-    margin-top: 0; /* Remove top margin, spacing is handled by heading's bottom margin */
-    font-size: 1.2rem; /* Keep desired font size */
+    margin-top: 0;
+    font-size: 1.2rem;
     line-height: 1.6;
 }
 
 .highlights-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    /* repeat(2, 1fr); */
     gap: 1rem;
 }
 
 .highlight-card {
     background-color: #ffffff10;
-    padding: 0.5rem; /* Reduced from 0.75rem */
+    padding: 0.5rem;
     border-radius: 0.5rem;
     transition: transform 0.2s var(--animation, ease);
     border: 1px solid var(--primary, #e0e0e0);
@@ -559,6 +564,25 @@ blockquote p {
     color: var(--accent, #83a598);
 }
 
+/* Add styles for the typewriter character animation */
+.typed-char {
+  opacity: 0; /* Start invisible */
+  display: inline-block; /* Ensures animation applies correctly */
+  animation: fadeInChar 0.15s ease-out forwards; /* Use 'forwards' to keep final state */
+}
+
+@keyframes fadeInChar {
+  from {
+    opacity: 0;
+    /* Optional: Add a slight vertical movement */
+    /* transform: translateY(3px); */
+  }
+  to {
+    opacity: 1;
+    /* transform: translateY(0); */
+  }
+}
+
 @media only screen and (max-width: 768px) {
     .title-section h1 {
         font-size: 3.5rem;
@@ -573,77 +597,43 @@ blockquote p {
     }
 
     .home-container {
-        height: auto; /* Allow height to adjust */
+        height: auto;
     }
     
-    /* Adjust moved H1 for mobile */
     .right-column-content h1 {
         font-size: 3rem; 
     }
 
-    /* Adjust moved Nav for mobile */
     .right-column-content .menu.inline {
         font-size: 1rem;
-        flex-wrap: wrap; /* Allow menu items to wrap */
+        flex-wrap: wrap;
     }
 
     .highlights-grid {
-        grid-template-columns: 1fr; /* Stack highlight cards */
-    }
-
-    .about-section {
-        /* Keep side-by-side layout or stack if preferred */
-        /* flex-direction: column; */
-        /* align-items: center; */
-        /* text-align: center; */
+        grid-template-columns: 1fr;
     }
 
     .about-section img {
-        /* Adjust image size for mobile if needed */
-        max-width: 120px; 
-        /* margin-bottom: 1rem; */ /* Add margin if stacking */
+        max-width: 132px;
     }
 }
 
 .about-section {
-    /* position: relative; */
-    padding: 0 0.5rem; /* Restore normal padding */
-    /* margin-top: 6rem; */ /* REMOVE this margin */
+    padding: 0 0.5rem;
     border-radius: 0.5rem;
 }
 
-/* Remove rules for old layout containers */
-/*
-.about-layout { ... }
-.about-image-container { ... }
-.about-text-content { ... }
-*/
-
-/* Position the image absolutely */
-/* Ensure this rule is completely removed if it still exists */
-/*
-.about-section img {
-    position: absolute;
-    top: -4rem;
-    left: 0.5rem;
-    ...
-}
-*/
-
-/* Keep hover effect */
 .about-section img:hover {
     transform: scale(1.05);
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Ensure headings are styled correctly */
 .about-section h2, .highlights-section h2 {
-    margin-top: 0; /* Reset margin */
+    margin-top: 0;
     font-size: 2.4rem;
-    margin-bottom: 0.5rem; /* Space between title and paragraph */
+    margin-bottom: 0.5rem;
 }
 
-/* Ensure paragraph is styled correctly */
 .about-section p {
     margin-top: 0;
     font-size: 1.2rem;
@@ -651,7 +641,6 @@ blockquote p {
     text-align: left;
 }
 
-/* Softer animation for profile image */
 @keyframes zoomInFace {
     0% {
         transform: scale(0.85);
@@ -663,26 +652,29 @@ blockquote p {
     }
 }
 
-/* Adjust the 'top' value for the absolutely positioned image */
 .profile-image-absolute {
     position: absolute;
-    /* Adjust top: Make this value more negative to move the image higher.
-       Try values like -8rem, -9rem, etc., and check in browser. */
-    top: -12rem; /* Made value more negative (was -8rem) */
-    left: 0; /* Align with the start of the grid container */
+    top: -12rem;
+    left: 0;
     width: 100%;
-    max-width: 175px; /* Keep desired size */
+    max-width: 193px;
     height: auto;
     border-radius: 0.5rem;
-    animation: zoomInFace 1s ease-out forwards;
     transform-origin: center 40%;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     cursor: pointer;
-    transition: all 0.2s ease;
-    z-index: -10; /* High z-index to ensure it's above grid content */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.9s ease-out, box-shadow 0.2s ease, visibility 0s 0.9s;
+    z-index: -10;
 }
 
-/* Keep hover effect */
+.profile-image-absolute.visible {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+
 .profile-image-absolute:hover {
     transform: scale(1.05);
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);

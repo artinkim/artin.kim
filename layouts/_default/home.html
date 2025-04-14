@@ -7,7 +7,7 @@
         <nav class="menu inline animate">
             {{ range . }}
             <div class="menu-item">
-                <a class="inactive {{ .Name }}" href="{{ .URL }}">{{ .Name }}</a>
+                <a class="inactive nav-link-text {{ .Name }}" href="{{ .URL }}" data-text="{{ .Name }}"></a>
             </div>
             {{ end }}
         </nav>
@@ -76,10 +76,98 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Updated selector to use the new class
+    const homeContainer = document.querySelector('.home-container');
+    const titleSection = document.querySelector('.title-section');
+    const titleH1 = document.querySelector('.title-section h1');
+    const navMenu = document.querySelector('.title-section nav.menu');
+    const twoColumnLayout = document.querySelector('.two-column-layout');
     const profileImg = document.querySelector('.profile-image-absolute');
+    const aboutSection = document.querySelector('.about-section');
+    const highlightsSection = document.querySelector('.highlights-section');
 
-    if (profileImg) { // Add a check to ensure the element exists
+    // --- Prepare Nav Links for Typewriter ---
+    const navLinks = navMenu ? Array.from(navMenu.querySelectorAll('.nav-link-text')) : [];
+    const linkData = navLinks.map(link => {
+        const text = link.getAttribute('data-text');
+        link.textContent = ''; // Clear initial text
+        return { element: link, text: text, currentLength: 0 };
+    });
+    let totalChars = linkData.reduce((sum, link) => sum + link.text.length, 0);
+    let typedChars = 0;
+    let currentLinkIndex = 0;
+    const typingSpeed = 40; // Milliseconds per character
+
+    // Ensure elements exist before proceeding
+    if (!homeContainer || !titleSection || !titleH1 || !navMenu || !twoColumnLayout || !profileImg || !aboutSection || !highlightsSection) {
+        console.error("Animation elements not found!");
+        // Fallback: Make everything visible immediately
+        if(titleH1) titleH1.classList.add('visible');
+        if(navMenu) {
+            navMenu.classList.add('visible');
+            // Restore text if fallback
+            linkData.forEach(data => data.element.textContent = data.text);
+        }
+        if(profileImg) profileImg.classList.add('visible');
+        if(aboutSection) aboutSection.classList.add('visible');
+        if(highlightsSection) highlightsSection.classList.add('visible');
+        if(twoColumnLayout) twoColumnLayout.classList.add('visible');
+        if(homeContainer) homeContainer.classList.add('layout-final');
+        if(titleSection) titleSection.classList.add('move-to-top');
+        return;
+    }
+
+    // --- Typewriter Function ---
+    function typeCharacter() {
+        if (currentLinkIndex < linkData.length) {
+            const currentData = linkData[currentLinkIndex];
+            if (currentData.currentLength < currentData.text.length) {
+                // Add next character
+                currentData.element.textContent += currentData.text[currentData.currentLength];
+                currentData.currentLength++;
+                typedChars++;
+                // Schedule next character
+                setTimeout(typeCharacter, typingSpeed);
+            } else {
+                // Move to next link
+                currentLinkIndex++;
+                // Add a slight pause between links if desired
+                // setTimeout(typeCharacter, typingSpeed * 2);
+                // Or continue immediately:
+                typeCharacter();
+            }
+        }
+    }
+
+    // --- Animation Sequence ---
+
+    // 1. Fade in Title & Start Move Up
+    setTimeout(() => {
+        titleH1.classList.add('visible');
+        titleSection.classList.add('move-to-top');
+        homeContainer.classList.add('layout-final');
+    }, 100);
+
+    // 2. Start Nav Menu Animation & Trigger Typewriter
+    setTimeout(() => {
+        navMenu.classList.add('visible'); // Start container fade-in/move-up
+        typeCharacter(); // Start typing effect
+    }, 300);
+
+    // 3. Adjust Layout Margin
+    setTimeout(() => {
+        twoColumnLayout.classList.add('visible');
+    }, 1000);
+
+    // 4. Start Fade in Image, About, and Highlights Sections
+    setTimeout(() => {
+        profileImg.classList.add('visible');
+        aboutSection.classList.add('visible');
+        highlightsSection.classList.add('visible');
+    }, 1600);
+
+
+    // --- Image Click Handler (Keep existing logic) ---
+    if (profileImg) {
         profileImg.addEventListener('click', function() {
           // Restore the modal creation code:
           const modal = document.createElement('div');
@@ -92,24 +180,20 @@
           modal.style.display = 'flex';
           modal.style.justifyContent = 'center';
           modal.style.alignItems = 'center';
-          modal.style.zIndex = '1000';
-          modal.style.cursor = 'pointer'; // Add pointer cursor to modal background
+          modal.style.zIndex = '1000'; // Ensure modal is on top
+          modal.style.cursor = 'pointer';
 
-          // Create the large image inside the modal
           const largeImg = document.createElement('img');
-          // Set the source to the FULL image
           largeImg.src = '/img/artin_headshot_full.jpg';
-          largeImg.style.maxHeight = '90vh'; // Allow slightly larger height
-          largeImg.style.maxWidth = '90vw';  // Allow slightly larger width
+          largeImg.style.maxHeight = '90vh';
+          largeImg.style.maxWidth = '90vw';
           largeImg.style.borderRadius = '0.5rem';
-          largeImg.style.cursor = 'default'; // Keep default cursor for image itself
+          largeImg.style.cursor = 'default';
 
-          // Prevent clicks on the image itself from closing the modal
           largeImg.addEventListener('click', function(event) {
             event.stopPropagation();
           });
 
-          // Close modal when clicking the background (the modal div)
           modal.addEventListener('click', function() {
             document.body.removeChild(modal);
           });
