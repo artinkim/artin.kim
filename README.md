@@ -1,2 +1,2 @@
-# adinack.dev
- My personal site.
+# artin.kim
+😜
