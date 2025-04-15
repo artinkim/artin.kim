@@ -39,46 +39,58 @@
         <!-- Highlights Section -->
         <section class="highlights-section">
             <h2>Highlights</h2>
+            {{/* Define the paths to the specific pages you want to highlight */}}
+            {{ $highlightPaths := slice
+                "/blog/better-hals-first-look"
+                "/projects/snake-ai"
+                "/blog/embedded-command-serialization"
+                "/blog/fearless-but-expensive"
+            }}
             <div class="highlights-grid">
-                <!-- Projects Highlight -->
-                <div class="highlight-card">
-                    <div>
-                        <h3>Snake AI</h3>
-                        <p></p>2023</p>
-                        <p>An ongoing project exploring real-time path tracing techniques using the Vulkan API and GLSL compute shaders.</p>
-                    </div>
-                    <a href="/projects/real-time-ray-tracer/" class="highlight-link">View Project →</a>
-                </div>
-                
-                <!-- Highlighted Blog Post -->
-                <div class="highlight-card">
-                    <div>
-                        <h3>Blog: Optimizing Shader Performance</h3>
-                        <p>2023</p>
-                        <p>A deep dive into common pitfalls and effective strategies for writing high-performance GLSL shaders for modern GPUs.</p>
-                    </div>
-                    <a href="/blog/optimizing-shader-performance/" class="highlight-link">Read Post →</a>
-                </div>
-                
-                <!-- Highlighted Publication -->
-                <div class="highlight-card">
-                    <div>
-                        <h3>Publication: Novel GI Technique</h3>
-                        <p>2024</p>
-                        <p>Details on a new method for approximating global illumination in dynamic scenes, published in ACM Transactions on Graphics.</p>
-                    </div>
-                    <a href="/publications/novel-gi-technique/" class="highlight-link">See Publication →</a>
-                </div>
-                
-                <!-- Highlighted Video -->
-                <div class="highlight-card">
-                    <div>
-                        <h3>Video: Intro to Compute Shaders</h3>
-                        <p>2020</p>
-                        <p>A beginner-friendly tutorial explaining the fundamentals of GPU compute shaders and how to leverage them for general-purpose tasks.</p>
-                    </div>
-                    <a href="/videos/intro-to-compute-shaders/" class="highlight-link">Watch Video →</a>
-                </div>
+                {{ range $path := $highlightPaths }}
+                    {{ with site.GetPage $path }}
+                        {{/* Check if the page was found */}}
+                        {{ if . }}
+                            <div class="highlight-card">
+                                {{/* The entire card content is now wrapped by the link */}}
+                                <a href="{{ .RelPermalink }}" class="highlight-card-link">
+                                    {{/* Main content div */}}
+                                    <div class="highlight-content">
+                                        <h3>{{ .Title }}</h3>
+                                        {{ with .Date }}
+                                            <p>{{ .Format "2006" }}</p> {{/* Display only the year */}}
+                                        {{ end }}
+                                        {{ with .Summary }}
+                                            <p>{{ . }}</p>
+                                        {{ else }}
+                                            <p><i>(No summary available)</i></p> {{/* Fallback if no summary */}}
+                                        {{ end }}
+                                    </div>
+
+                                    {{/* Determine link text based on section */}}
+                                    {{ $linkText := "Learn More" }} {{/* Default link text - NO ARROW */}}
+                                    {{ if eq .Section "projects" }}
+                                        {{ $linkText = "View Project" }} {{/* NO ARROW */}}
+                                    {{ else if eq .Section "blog" }}
+                                        {{ $linkText = "Read Post" }} {{/* NO ARROW */}}
+                                    {{ else if eq .Section "publications" }}
+                                        {{ $linkText = "See Publication" }} {{/* NO ARROW */}}
+                                    {{ else if eq .Section "videos" }}
+                                        {{ $linkText = "Watch Video" }} {{/* NO ARROW */}}
+                                    {{ end }}
+                                    {{/* Span for the hover text, positioned via CSS */}}
+                                    <span class="highlight-hover-text">{{ $linkText }}</span>
+                                </a>
+                                {{/* The original link is removed from here */}}
+                            </div>
+                        {{ else }}
+                            {{/* Optional: Output a placeholder or warning if a page wasn't found */}}
+                            <div class="highlight-card highlight-card-error">
+                                <p>Could not load highlight for: <code>{{ $path }}</code></p>
+                            </div>
+                        {{ end }}
+                    {{ end }}
+                {{ end }}
             </div>
         </section>
     </div>

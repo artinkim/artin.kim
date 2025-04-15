@@ -572,17 +572,43 @@ blockquote p {
 
 .highlight-card {
     background-color: #ffffff10;
-    padding: 0.5rem;
     border-radius: 0.5rem;
-    transition: transform 0.2s var(--animation, ease);
+    /* Keep transitions for transform and border-color */
+    /* Box-shadow transition might conflict slightly with animation, but helps smooth depth shadow */
+    transition: transform 0.2s var(--animation, ease),
+                box-shadow 0.25s var(--animation, ease),
+                border-color 0.2s ease;
+    /* Start with only the base border */
     border: 1px solid var(--primary, #e0e0e0);
+    /* Add a subtle base shadow for consistency before hover */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    position: relative;
+    overflow: hidden;
+}
+
+.highlight-card-link {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    flex-grow: 1;
+    padding: 0.75rem;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+    cursor: pointer; /* Add pointer cursor to the link area */
+}
+
+.highlight-content {
+    flex-grow: 1;
 }
 
 .highlight-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-5px);
+    border-color: var(--accent); /* Keep border color change */
+    /* Apply the animation instead of a static box-shadow */
+    animation: pulse-glow 4s infinite ease-in-out;
+    /* We remove the static box-shadow here as the animation handles it */
 }
 
 .highlight-card h3 {
@@ -590,24 +616,46 @@ blockquote p {
     margin-bottom: 0.25rem;
     font-size: 1.6rem;
     color: var(--accent, #83a598);
+    transition: color 0.2s ease;
+}
+
+/* Optional: Slightly change title color on hover too */
+.highlight-card:hover h3 {
+    /* color: var(--accent2); */
 }
 
 .highlight-card p {
     margin: 0.25rem 0;
     font-size: 1.1rem;
+    color: var(--primary);
 }
 
-.highlight-link {
-    display: inline-block;
-    margin-top: 0.25rem;
+/* Re-introduce and style the hover text */
+.highlight-hover-text {
+    position: absolute;
+    bottom: 0; /* Position at the very bottom */
+    left: 0; /* Align to the left edge */
+    width: 100%; /* Span the full width */
+    text-align: center; /* Center the text */
+    padding: 0.5rem 0; /* Add some padding */
     font-size: 1.1rem;
     font-weight: bold;
-    text-decoration: none;
-    color: var(--primary, #e0e0e0);
+    color: var(--primary);
+    /* Semi-transparent background matching the card's background */
+    background: linear-gradient(to top, rgba(244, 241, 222, 0.9), rgba(244, 241, 222, 0)); /* Fade effect */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-out 0.05s, visibility 0s 0.25s linear; /* Slight delay on fade-in */
+    pointer-events: none; /* Crucial: text doesn't block clicks on the link */
+    border-bottom-left-radius: 0.5rem; /* Match card radius */
+    border-bottom-right-radius: 0.5rem; /* Match card radius */
 }
 
-.highlight-link:hover {
-    color: var(--accent, #83a598);
+/* Show hover text when hovering the card */
+.highlight-card:hover .highlight-hover-text {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease-out 0.05s, visibility 0s linear;
 }
 
 /* Add styles for the typewriter character animation */
@@ -662,6 +710,12 @@ blockquote p {
 
     .about-section img {
         max-width: 132px;
+    }
+
+    /* Adjust hover text padding/font for smaller screens if needed */
+    .highlight-hover-text {
+         /* font-size: 1rem; */
+         /* padding: 0.4rem 0; */
     }
 }
 
@@ -725,5 +779,27 @@ blockquote p {
 .profile-image-absolute:hover {
     transform: scale(1.05);
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Add this keyframe definition */
+@keyframes pulse-glow {
+  0% {
+    /* Base glow state (matches hover start) + depth shadow */
+    box-shadow:
+        0 6px 12px rgba(0, 0, 0, 0.2), /* Depth */
+        0 0 15px 2px rgba(249, 87, 56, 0.5); /* Glow */
+  }
+  50% {
+    /* Peak glow state + depth shadow */
+    box-shadow:
+        0 6px 14px rgba(0, 0, 0, 0.25), /* Slightly deeper depth */
+        0 0 25px 5px rgba(249, 87, 56, 0.7); /* Brighter, wider glow */
+  }
+  100% {
+    /* Return to base glow state + depth shadow */
+    box-shadow:
+        0 6px 12px rgba(0, 0, 0, 0.2), /* Depth */
+        0 0 15px 2px rgba(249, 87, 56, 0.5); /* Glow */
+  }
 }
 
