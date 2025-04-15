@@ -471,7 +471,7 @@ blockquote p {
 /* Style for the temporary glitch cursor */
 .glitch-cursor {
   display: inline-block; /* Or block if needed */
-  background-color: currentColor; /* Use the text color */
+  background-color: var(--accent); /* Use the text color */
   width: 0.1ch; /* Adjust as needed */
   height: 1em; /* Match font height */
   margin-left: 1px; /* Space after character */

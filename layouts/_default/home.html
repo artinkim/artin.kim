@@ -24,10 +24,15 @@
         <section class="about-section">
             <h2>About Me</h2>
             <p>
-            I'm a software engineer and researcher interested in computer graphics,
-            programming languages, and systems. I'm currently working on real-time
-            rendering techniques and compiler optimizations. In my free time, I enjoy
-            contributing to open source projects.
+            I'm a Machine Learning Researcher and Software Engineer.
+            My interests are wide and varied, but I'm currently most interested in:
+            <ul style="font-size: 1.3rem; line-height: 1.8;">
+                <li>Mechanistic Interpretability</li>
+                <li>ML Systems</li>
+                <li>Reinforcement Learning</li>
+                <li>Singular Learning Theory, Double Decent, and Grokking </li>
+            </ul>
+            In my free time, I enjoy?
             </p>
         </section>
         
@@ -38,7 +43,8 @@
                 <!-- Projects Highlight -->
                 <div class="highlight-card">
                     <div>
-                        <h3>Project: Real-Time Ray Tracer</h3>
+                        <h3>Snake AI</h3>
+                        <p></p>2023</p>
                         <p>An ongoing project exploring real-time path tracing techniques using the Vulkan API and GLSL compute shaders.</p>
                     </div>
                     <a href="/projects/real-time-ray-tracer/" class="highlight-link">View Project →</a>
@@ -48,6 +54,7 @@
                 <div class="highlight-card">
                     <div>
                         <h3>Blog: Optimizing Shader Performance</h3>
+                        <p>2023</p>
                         <p>A deep dive into common pitfalls and effective strategies for writing high-performance GLSL shaders for modern GPUs.</p>
                     </div>
                     <a href="/blog/optimizing-shader-performance/" class="highlight-link">Read Post →</a>
@@ -57,6 +64,7 @@
                 <div class="highlight-card">
                     <div>
                         <h3>Publication: Novel GI Technique</h3>
+                        <p>2024</p>
                         <p>Details on a new method for approximating global illumination in dynamic scenes, published in ACM Transactions on Graphics.</p>
                     </div>
                     <a href="/publications/novel-gi-technique/" class="highlight-link">See Publication →</a>
@@ -66,6 +74,7 @@
                 <div class="highlight-card">
                     <div>
                         <h3>Video: Intro to Compute Shaders</h3>
+                        <p>2020</p>
                         <p>A beginner-friendly tutorial explaining the fundamentals of GPU compute shaders and how to leverage them for general-purpose tasks.</p>
                     </div>
                     <a href="/videos/intro-to-compute-shaders/" class="highlight-link">Watch Video →</a>
@@ -227,8 +236,8 @@
     }, contentFadeInTime);
 
     // 6. Glitch Correction after everything settles
-    const glitchCorrectionDelayAfterContent = 2000; // 1 second after content fades in
-    const cursorVisibleDuration = 1000; // How long cursor stays after wrong char
+    const glitchCorrectionDelayAfterContent = 1800; // 1 second after content fades in
+    const cursorVisibleDuration = 750; // How long cursor stays after wrong char
     const deletePauseDuration = 250;   // Pause after deleting wrong char
     const typePauseDuration = 350;     // Pause after typing correct char (before cursor disappears)
 
