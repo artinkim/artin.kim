@@ -439,6 +439,25 @@ blockquote p {
     -webkit-user-select: none; /* Safari */
     -moz-user-select: none; /* Firefox */
     -ms-user-select: none; /* IE10+ */
+    /* Add outline for focus state */
+    outline: none; /* Remove default browser outline */
+    border-radius: 3px; /* Optional: slightly round corners for focus */
+    transition: box-shadow 0.2s ease-in-out; /* Smooth focus transition */
+}
+
+/* NEW: Allow selection and interaction when editable */
+.title-section h1.editable {
+    user-select: auto; /* Or text */
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    cursor: text; /* Indicate text input */
+    caret-color: var(--accent); /* NEW: Set cursor color */
+}
+
+/* NEW: Style for focus state */
+.title-section h1.editable:focus {
+    /* REMOVED: box-shadow: 0 0 0 2px var(--accent); */ /* Remove orange box */
 }
 
 .title-section nav.menu {

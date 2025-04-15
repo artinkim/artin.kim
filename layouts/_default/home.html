@@ -117,6 +117,24 @@
     const scrambleStartDelayAfterMovement = 0; // ms after movement starts before scrambling begins
     const navTypingStartDelayAfterMovement = 300; // ms after movement starts before nav typing begins
 
+    // --- Animation Timings ---
+    // Initial Glitch Timings (Slower)
+    const initialGlitchCursorVisibleDuration = 750;
+    const initialGlitchDeletePauseDuration = 250;
+    const initialGlitchTypePauseDuration = 350;
+
+    // Auto-Correction Timings (Base - Faster)
+    const autoCorrectCursorVisibleDuration = 150;
+    const autoCorrectDeletePauseDuration = 100;
+    const autoCorrectTypePauseDuration = 150;
+    const autoCorrectInterCharPause = 25; // Base pause between individual operations
+
+    // Dynamic Speed Config
+    const maxConsecutiveForSpeedup = 5;
+    const minDurationFactor = 0.4; // Speed multiplier for max speedup
+    const blockCharAnimDuration = 50; // Faster typing/deleting within a block
+    const deletionSpeedFactor = 2.5; // NEW: Make deletion slower (e.g., 1.8 = 80% slower than blockSpeed)
+
     // --- Setup Title Spans ---
     const titleSpans = [];
     if (titleH1 && targetTitle) {
@@ -249,9 +267,10 @@
 
     // 6. Glitch Correction after everything settles
     const glitchCorrectionDelayAfterContent = 1800; // 1 second after content fades in
-    const cursorVisibleDuration = 750; // How long cursor stays after wrong char
-    const deletePauseDuration = 250;   // Pause after deleting wrong char
-    const typePauseDuration = 350;     // Pause after typing correct char (before cursor disappears)
+
+    // --- NEW: Idle Timer variables ---
+    let idleTimer = null;
+    const idleTimeoutDuration = 3000; // 3 seconds of inactivity triggers correction
 
     // Ensure the index is valid before setting timeout
     if (glitchCharIndex >= 0 && glitchCharIndex < titleSpans.length && glitchCorrectChar) {
@@ -260,31 +279,389 @@
         setTimeout(() => {
             const targetSpan = titleSpans[glitchCharIndex];
             if (targetSpan) {
-                // --- Start Correction Sequence ---
-
-                // 1. Add Cursor next to wrong character ('e')
-                targetSpan.innerHTML = glitchWrongChar + '<span class="glitch-cursor"></span>';
-
-                // 2. Wait, then Delete wrong character ('e') (leaving cursor)
-                setTimeout(() => {
-                    targetSpan.innerHTML = '<span class="glitch-cursor"></span>'; // Just the cursor
-
-                    // 3. Wait, then Type correct character ('i') (with cursor)
-                    setTimeout(() => {
-                        // Use innerHTML for spaces
-                        const correctContent = (glitchCorrectChar === ' ') ? '&nbsp;' : glitchCorrectChar;
-                        targetSpan.innerHTML = correctContent + '<span class="glitch-cursor"></span>';
-
-                        // 4. Wait, then Remove cursor
-                        setTimeout(() => {
-                            targetSpan.innerHTML = correctContent; // Final correct character ('i')
-                        }, typePauseDuration);
-
-                    }, deletePauseDuration);
-
-                }, cursorVisibleDuration);
+                // --- Start Initial Glitch Correction Sequence (Uses SLOWER timings) ---
+                const initialSpeed = {
+                    baseCursorDur: initialGlitchCursorVisibleDuration,
+                    baseDeletePause: initialGlitchDeletePauseDuration,
+                    baseTypePause: initialGlitchTypePauseDuration,
+                    blockSpeed: 50 // Not used here, but provide a default
+                };
+                animateSubstitution(
+                    targetSpan,
+                    glitchWrongChar,
+                    glitchCorrectChar,
+                    initialSpeed
+                ).then(() => {
+                    // Enable editing AFTER the initial correction animation finishes
+                    console.log("Initial glitch animation finished, enabling editing.");
+                    enableEditingAndIdleCheck();
+                }).catch(error => {
+                    console.error("Error during initial glitch animation:", error);
+                    enableEditingAndIdleCheck();
+                });
+            } else {
+                 // Fallback if targetSpan not found
+                 console.log("Initial glitch target span not found, enabling editing.");
+                 enableEditingAndIdleCheck();
             }
         }, glitchCorrectionStartTime);
+    } else {
+         // Fallback if glitch index is invalid from the start
+         const fallbackEditTime = contentFadeInTime + 500;
+         console.log("Initial glitch index invalid, enabling editing via fallback timer.");
+         setTimeout(enableEditingAndIdleCheck, fallbackEditTime);
+    }
+
+
+    // --- Helper function to enable editing and start idle check ---
+    function enableEditingAndIdleCheck() {
+        if (titleH1 && !titleH1.isContentEditable) {
+            titleH1.contentEditable = true;
+            titleH1.classList.add('editable');
+            console.log("H1 editing enabled.");
+            setupIdleCorrectionTimer(titleH1, targetTitle);
+        } else if (titleH1 && titleH1.isContentEditable) {
+             console.log("H1 editing was already enabled.");
+        } else {
+             console.error("Could not enable editing, titleH1 not found?");
+        }
+    }
+
+    // --- Idle Timer Setup ---
+    function setupIdleCorrectionTimer(element, correctText) {
+        element.addEventListener('input', () => {
+            clearTimeout(idleTimer);
+            // Don't start correction timer immediately after input, wait for pause
+            idleTimer = setTimeout(() => {
+                startAutoCorrection(element, correctText);
+            }, idleTimeoutDuration);
+        });
+        // Initial check after setup, in case it needs immediate correction (optional)
+        // idleTimer = setTimeout(() => startAutoCorrection(element, correctText), idleTimeoutDuration);
+        console.log("Idle correction timer setup.");
+    }
+
+    // --- Dynamic Speed Calculation Helper (Simplified for block length) ---
+    function calculateCorrectionSpeed(blockLength) {
+        // Speedup starts from block length 1 (unlike previous consecutive error count)
+        const effectiveCount = Math.min(Math.max(0, blockLength -1), maxConsecutiveForSpeedup);
+        const t = effectiveCount / maxConsecutiveForSpeedup;
+        const durationFactor = 1 - t * (1 - minDurationFactor);
+        const baseCursorDur = Math.max(20, autoCorrectCursorVisibleDuration * durationFactor);
+        const baseDeletePause = Math.max(20, autoCorrectDeletePauseDuration * durationFactor);
+        const baseTypePause = Math.max(20, autoCorrectTypePauseDuration * durationFactor);
+        const blockSpeed = Math.max(15, blockCharAnimDuration * durationFactor);
+        return { baseCursorDur, baseDeletePause, baseTypePause, blockSpeed };
+    }
+
+    // --- NEW: Levenshtein Path Calculation ---
+    function getLevenshteinPath(s1, s2) {
+        const d = []; // DP table: d[i][j] = { cost, op }
+
+        // Initialize DP table borders
+        for (let i = 0; i <= s1.length; i++) {
+            d[i] = [];
+            d[i][0] = { cost: i, op: (i > 0 ? 'del' : 'start') };
+        }
+        for (let j = 1; j <= s2.length; j++) {
+             // Ensure d[0] exists before accessing d[0][j]
+             if (!d[0]) d[0] = [];
+            d[0][j] = { cost: j, op: 'ins' };
+        }
+         // Ensure d[0][0] is correctly set if both strings are empty initially
+         if (!d[0]) d[0] = [];
+         if (!d[0][0]) d[0][0] = { cost: 0, op: 'start'};
+
+
+        // Fill DP table
+        for (let i = 1; i <= s1.length; i++) {
+            for (let j = 1; j <= s2.length; j++) {
+                const cost = (s1[i - 1] === s2[j - 1]) ? 0 : 1; // Substitution cost
+
+                const delCost = d[i - 1][j].cost + 1;
+                const insCost = d[i][j - 1].cost + 1;
+                const subCost = d[i - 1][j - 1].cost + cost;
+
+                // Determine minimum cost and corresponding operation
+                if (subCost <= insCost && subCost <= delCost) {
+                    d[i][j] = { cost: subCost, op: (cost === 0 ? 'match' : 'sub') };
+                } else if (insCost < subCost && insCost <= delCost) {
+                    // Prefer insertion over deletion if costs are equal
+                    d[i][j] = { cost: insCost, op: 'ins' };
+                } else {
+                    d[i][j] = { cost: delCost, op: 'del' };
+                }
+            }
+        }
+
+        // Backtrack to find the path
+        const path = [];
+        let i = s1.length;
+        let j = s2.length;
+        while (i > 0 || j > 0) {
+             // Boundary check for safety during backtracking
+             if (!d[i] || !d[i][j]) {
+                 console.error("Levenshtein backtracking error: DP table access out of bounds.", {i, j});
+                 break;
+             }
+            const currentOp = d[i][j].op;
+            if (currentOp === 'start') break; // Reached the beginning
+
+            path.push(currentOp);
+
+            // Move indices based on the operation
+            if (currentOp === 'match' || currentOp === 'sub') {
+                i--;
+                j--;
+            } else if (currentOp === 'ins') {
+                j--; // Consumed char from s2 (target), move target index
+            } else { // 'del'
+                i--; // Consumed char from s1 (source), move source index
+            }
+        }
+
+        return path.reverse(); // Path is built backwards
+    }
+
+
+    // --- Auto Correction Logic (Using Levenshtein Path) ---
+    async function startAutoCorrection(element, correctText) {
+        const currentText = (element.textContent || "").trim();
+        const targetText = correctText.trim();
+
+        if (currentText === targetText) {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => startAutoCorrection(element, correctText), idleTimeoutDuration);
+            return;
+        }
+
+        console.log(`Starting auto-correction. Current: "${currentText}", Target: "${targetText}"`);
+        element.contentEditable = false;
+        element.classList.remove('editable');
+        element.blur();
+
+        // --- Phase 1: Get Optimal Edit Path ---
+        const editPath = getLevenshteinPath(currentText, targetText);
+        console.log("Levenshtein Path:", editPath.join(', '));
+
+        // --- Phase 2: Rebuild Spans from Current Text ---
+        element.innerHTML = ''; // Clear element
+        let currentSpans = []; // Array to hold references to the current spans
+        for (let i = 0; i < currentText.length; i++) {
+            const span = document.createElement('span');
+            span.className = 'char-slot';
+            span.innerHTML = currentText[i] === ' ' ? '&nbsp;' : currentText[i];
+            element.appendChild(span);
+            currentSpans.push(span);
+        }
+        await new Promise(r => setTimeout(r, 50)); // Short pause for render
+
+        // --- Phase 3: Execute Animations based on Path ---
+        let currentSpanIdx = 0; // Index into currentSpans array (represents s1)
+        let targetCharIdx = 0; // Index into targetText string (represents s2)
+        let pathIdx = 0;
+
+        while (pathIdx < editPath.length) {
+            const startOp = editPath[pathIdx];
+            let blockLength = 1;
+
+            // Find consecutive block of same non-'match' operation
+            while (pathIdx + blockLength < editPath.length &&
+                   editPath[pathIdx + blockLength] === startOp &&
+                   startOp !== 'match') {
+                blockLength++;
+            }
+
+            const speed = calculateCorrectionSpeed(blockLength); // Speed based on block length
+
+            console.log(`Path Op: ${startOp}, Block Length: ${blockLength}, Speed: ${JSON.stringify(speed)}`);
+
+            if (startOp === 'match') {
+                // Simply advance pointers for matches
+                currentSpanIdx++;
+                targetCharIdx++;
+                pathIdx++; // Move path index by 1 for match
+                continue; // Skip animation for matches
+            } else if (startOp === 'sub') {
+                // Animate substitutions in the block
+                for (let k = 0; k < blockLength; k++) {
+                    const spanToSub = currentSpans[currentSpanIdx + k];
+                    const charToSub = targetText[targetCharIdx + k];
+                    const originalChar = spanToSub ? (spanToSub.innerHTML === '&nbsp;' ? ' ' : spanToSub.textContent) : null;
+                    if (spanToSub && charToSub !== originalChar) {
+                        await animateSubstitution(spanToSub, originalChar, charToSub, speed);
+                        await new Promise(r => setTimeout(r, autoCorrectInterCharPause));
+                    } else if (!spanToSub) {
+                         console.error("Substitution error: Span index out of bounds.");
+                    }
+                }
+                currentSpanIdx += blockLength;
+                targetCharIdx += blockLength;
+            } else if (startOp === 'ins') {
+                const charsToInsert = targetText.substring(targetCharIdx, targetCharIdx + blockLength);
+                // Insert *before* the span at currentSpanIdx
+                const insertBeforeSpan = currentSpanIdx < currentSpans.length ? currentSpans[currentSpanIdx] : null;
+                const insertedSpans = await animateBlockInsertion(element, charsToInsert, insertBeforeSpan, speed);
+                // Update currentSpans array by inserting the new spans at the correct index
+                currentSpans.splice(currentSpanIdx, 0, ...insertedSpans);
+                // Advance currentSpanIdx past the newly inserted spans
+                currentSpanIdx += insertedSpans.length; // Important: Adjust span index
+                targetCharIdx += blockLength; // Advance target index
+            } else if (startOp === 'del') {
+                // Ensure indices are valid before slicing
+                if (currentSpanIdx + blockLength > currentSpans.length) {
+                     console.error("Deletion error: Block length exceeds available spans.");
+                     blockLength = currentSpans.length - currentSpanIdx; // Adjust block length
+                     if (blockLength <= 0) {
+                         pathIdx += blockLength; // Skip if nothing to delete
+                         continue;
+                     }
+                }
+                const spansToDelete = currentSpans.slice(currentSpanIdx, currentSpanIdx + blockLength);
+                await animateBlockDeletion(spansToDelete, speed);
+                // Update currentSpans array by removing the deleted spans
+                currentSpans.splice(currentSpanIdx, blockLength);
+                // currentSpanIdx remains the same (now points to the span *after* the deleted block)
+                // targetCharIdx remains the same
+            }
+
+            pathIdx += blockLength; // Advance path index by the processed block length
+            await new Promise(r => setTimeout(r, autoCorrectInterCharPause * 0.5)); // Pause after block
+        }
+        // --- End Correction Execution ---
+
+
+        console.log("Correction finished.");
+        // Final check - set text content directly to ensure correctness
+        element.textContent = targetText;
+
+        element.contentEditable = true;
+        element.classList.add('editable');
+
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            startAutoCorrection(element, targetText);
+        }, idleTimeoutDuration);
+    }
+
+    // --- Animation Helper for Substitution ---
+    async function animateSubstitution(spanElement, wrongChar, correctChar, speed) {
+        // Uses the logic from correctCharacterWithAnimation
+        return new Promise(resolve => {
+            const initialContent = wrongChar ? (wrongChar === ' ' ? '&nbsp;' : wrongChar) : '';
+            const correctContent = (correctChar === ' ') ? '&nbsp;' : correctChar;
+            const cursorHTML = '<span class="glitch-cursor"></span>';
+
+            spanElement.innerHTML = initialContent + cursorHTML; // Add cursor
+
+            setTimeout(() => {
+                spanElement.innerHTML = cursorHTML; // Delete wrong char
+
+                setTimeout(() => {
+                    spanElement.innerHTML = correctContent + cursorHTML; // Type correct char
+
+                    setTimeout(() => {
+                        spanElement.innerHTML = correctContent; // Remove cursor
+                        resolve();
+                    }, speed.baseTypePause); // Use calculated speed
+
+                }, wrongChar ? speed.baseDeletePause : 50); // Use calculated speed
+
+            }, speed.baseCursorDur); // Use calculated speed
+        });
+    }
+
+    // --- Animation Helper for Block Deletion (Modified) ---
+    async function animateBlockDeletion(spansToDelete, speed) {
+        if (!spansToDelete || spansToDelete.length === 0) return;
+
+        const firstSpan = spansToDelete[0];
+        const parent = firstSpan.parentNode;
+        if (!parent) return;
+
+        // Calculate the slower deletion speed
+        const slowerBlockSpeed = speed.blockSpeed * deletionSpeedFactor; // Apply the factor
+
+        // Create a single cursor span to animate
+        const cursorSpan = document.createElement('span');
+        cursorSpan.className = 'glitch-cursor';
+        cursorSpan.style.position = 'absolute';
+        // Use the slower speed for the cursor transition
+        cursorSpan.style.transition = `right ${slowerBlockSpeed}ms linear`;
+        parent.style.position = 'relative';
+
+        const lastSpan = spansToDelete[spansToDelete.length - 1];
+        parent.insertBefore(cursorSpan, lastSpan.nextSibling);
+        await new Promise(r => setTimeout(r, 50)); // Allow render
+
+        // Animate cursor moving left while deleting spans
+        for (let i = spansToDelete.length - 1; i >= 0; i--) {
+            const span = spansToDelete[i];
+            // Ensure span still exists before getting offsetLeft
+             if (!span || !span.parentNode) continue;
+
+            // Move cursor to be just before this span
+            cursorSpan.style.right = (parent.offsetWidth - span.offsetLeft) + 'px';
+            // Wait using the slower speed
+            await new Promise(r => setTimeout(r, slowerBlockSpeed));
+            if (span.parentNode) {
+                span.parentNode.removeChild(span); // Remove the span
+            }
+        }
+
+        // Remove the cursor
+        if (cursorSpan.parentNode) {
+            cursorSpan.parentNode.removeChild(cursorSpan);
+        }
+        parent.style.position = ''; // Reset parent positioning
+    }
+
+    // --- Animation Helper for Block Insertion ---
+    async function animateBlockInsertion(parentElement, charsToInsert, insertBeforeSpan, speed) {
+        if (!charsToInsert || charsToInsert.length === 0) return [];
+
+        const insertedSpans = [];
+        parentElement.style.position = 'relative'; // For cursor positioning
+
+        // Create and position the cursor
+        const cursorSpan = document.createElement('span');
+        cursorSpan.className = 'glitch-cursor';
+        cursorSpan.style.position = 'absolute'; // Position relative to parent
+        parentElement.insertBefore(cursorSpan, insertBeforeSpan); // Insert cursor at the right spot
+        // Calculate initial cursor position (might need refinement based on actual layout)
+        cursorSpan.style.left = insertBeforeSpan ? insertBeforeSpan.offsetLeft + 'px' : parent.offsetWidth + 'px';
+        cursorSpan.style.display = 'inline-block'; // Make it visible
+
+        await new Promise(r => setTimeout(r, 50)); // Allow render
+
+        // Type characters one by one rapidly
+        for (let i = 0; i < charsToInsert.length; i++) {
+            const char = charsToInsert[i];
+            const newSpan = document.createElement('span');
+            newSpan.className = 'char-slot';
+            newSpan.innerHTML = (char === ' ') ? '&nbsp;' : char;
+            newSpan.style.opacity = '0'; // Start invisible for fade-in effect
+            newSpan.style.transition = `opacity ${speed.blockSpeed * 0.8}ms ease-out`;
+
+            parentElement.insertBefore(newSpan, cursorSpan); // Insert span before cursor
+            insertedSpans.push(newSpan);
+
+            // Trigger fade-in
+            await new Promise(r => setTimeout(r, 10)); // Short delay before fade
+            newSpan.style.opacity = '1';
+
+            // Update cursor position (this is approximate)
+            cursorSpan.style.left = newSpan.offsetLeft + newSpan.offsetWidth + 'px';
+
+            await new Promise(r => setTimeout(r, speed.blockSpeed)); // Wait for char typing animation
+        }
+
+        // Remove cursor
+        if (cursorSpan.parentNode) {
+            cursorSpan.parentNode.removeChild(cursorSpan);
+        }
+        parentElement.style.position = ''; // Reset parent positioning
+        return insertedSpans; // Return the newly created spans
     }
 
 
