@@ -127,13 +127,13 @@
     const autoCorrectCursorVisibleDuration = 150;
     const autoCorrectDeletePauseDuration = 100;
     const autoCorrectTypePauseDuration = 150;
-    const autoCorrectInterCharPause = 25; // Base pause between individual operations
+    const autoCorrectInterCharPause = 750; // Base pause between individual operations
 
     // Dynamic Speed Config
     const maxConsecutiveForSpeedup = 5;
     const minDurationFactor = 0.4; // Speed multiplier for max speedup
     const blockCharAnimDuration = 50; // Faster typing/deleting within a block
-    const deletionSpeedFactor = 2.5; // NEW: Make deletion slower (e.g., 1.8 = 80% slower than blockSpeed)
+    const deletionSpeedFactor = 1.5; // NEW: Make deletion slower (e.g., 1.8 = 80% slower than blockSpeed)
 
     // --- Setup Title Spans ---
     const titleSpans = [];
@@ -450,10 +450,14 @@
         for (let i = 0; i < currentText.length; i++) {
             const span = document.createElement('span');
             span.className = 'char-slot';
+            span.style.display = 'inline';
             span.innerHTML = currentText[i] === ' ' ? '&nbsp;' : currentText[i];
             element.appendChild(span);
             currentSpans.push(span);
         }
+        element.style.letterSpacing = 'normal';
+        element.style.wordSpacing = 'normal';
+
         await new Promise(r => setTimeout(r, 50)); // Short pause for render
 
         // --- Phase 3: Execute Animations based on Path ---
@@ -534,6 +538,8 @@
         console.log("Correction finished.");
         // Final check - set text content directly to ensure correctness
         element.textContent = targetText;
+        element.style.letterSpacing = '';
+        element.style.wordSpacing = '';
 
         element.contentEditable = true;
         element.classList.add('editable');
@@ -546,7 +552,9 @@
 
     // --- Animation Helper for Substitution ---
     async function animateSubstitution(spanElement, wrongChar, correctChar, speed) {
-        // Uses the logic from correctCharacterWithAnimation
+        if (spanElement) {
+            spanElement.style.display = 'inline';
+        }
         return new Promise(resolve => {
             const initialContent = wrongChar ? (wrongChar === ' ' ? '&nbsp;' : wrongChar) : '';
             const correctContent = (correctChar === ' ') ? '&nbsp;' : correctChar;
@@ -562,6 +570,9 @@
 
                     setTimeout(() => {
                         spanElement.innerHTML = correctContent; // Remove cursor
+                        if (spanElement) {
+                           spanElement.style.display = 'inline';
+                        }
                         resolve();
                     }, speed.baseTypePause); // Use calculated speed
 
@@ -621,6 +632,8 @@
         if (!charsToInsert || charsToInsert.length === 0) return [];
 
         const insertedSpans = [];
+        parentElement.style.letterSpacing = 'normal';
+        parentElement.style.wordSpacing = 'normal';
         parentElement.style.position = 'relative'; // For cursor positioning
 
         // Create and position the cursor
@@ -639,6 +652,7 @@
             const char = charsToInsert[i];
             const newSpan = document.createElement('span');
             newSpan.className = 'char-slot';
+            newSpan.style.display = 'inline';
             newSpan.innerHTML = (char === ' ') ? '&nbsp;' : char;
             newSpan.style.opacity = '0'; // Start invisible for fade-in effect
             newSpan.style.transition = `opacity ${speed.blockSpeed * 0.8}ms ease-out`;
